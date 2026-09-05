@@ -6,7 +6,7 @@
   <meta name="theme-color" content="#0b1020" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-  <title>Realm Counter</title>
+  <title>Star Realm Counter v.0.10</title>
   <link rel="manifest" href="manifest.webmanifest" />
   <style>
     :root{
@@ -21,7 +21,7 @@
     button,input{font:inherit} button{touch-action:manipulation}
     .app{height:100dvh;display:grid;grid-template-rows:auto minmax(0,1fr);gap:5px;padding:5px;overflow:hidden}
     header{display:flex;align-items:center;justify-content:space-between;gap:6px;min-height:34px}
-    h1{font-size:15px;line-height:1;margin:0;white-space:nowrap}.brandline{display:flex;align-items:center;gap:6px}.version{font-size:9px;color:var(--muted);border:1px solid var(--line);border-radius:999px;padding:2px 5px}
+    h1{font-size:15px;line-height:1;margin:0;white-space:nowrap}.brandline{display:flex;align-items:center;gap:6px}
     .top-actions{display:flex;gap:4px;min-width:0}
     .btn{border:1px solid var(--line);background:var(--panel2);color:var(--text);padding:6px 8px;border-radius:9px;font-weight:750;font-size:11px;white-space:nowrap}
     .btn.secondary{background:transparent}.btn.danger{border-color:#5d2b36;color:#ffd5d8}
@@ -69,10 +69,11 @@
     .log-entry{display:grid;grid-template-columns:58px minmax(0,1fr) auto;gap:7px;padding:6px 0;border-top:1px solid rgba(38,55,84,.7);font-size:12px}
     .log-entry:first-child{border-top:0}.log-time{color:var(--muted)}.log-change.plus{color:var(--ok);font-weight:800}.log-change.minus{color:var(--danger);font-weight:800}
 
-    .gameover-title{font-size:20px;font-weight:900;margin:0 0 6px}
-    .gameover-winner{font-size:15px;margin:0;color:#f4d77f}
-    .gameover-actions{display:flex;justify-content:center;gap:8px;margin-top:16px}
-    .gameover-actions .btn{min-width:118px}
+    .end-actions{position:fixed;left:50%;bottom:calc(10px + env(safe-area-inset-bottom));transform:translateX(-50%);z-index:20;display:none;gap:12px;align-items:center}
+    .end-actions.show{display:flex}
+    .round-end-btn{width:48px;height:48px;border-radius:50%;border:1px solid var(--line);background:rgba(16,26,46,.94);color:var(--text);font-size:23px;font-weight:900;display:flex;align-items:center;justify-content:center;box-shadow:0 5px 18px rgba(0,0,0,.35);backdrop-filter:blur(8px)}
+    .round-end-btn.restart{color:#bff4d6;border-color:#315d49}
+    .round-end-btn.close{color:#ffd0d4;border-color:#63343c}
     @media(max-height:650px){.app{padding:3px;gap:3px}header{min-height:29px}.btn{padding:5px 6px}.card{padding:4px}.score{font-size:clamp(31px,7.4vh,55px)}.controls{grid-template-columns:37px minmax(0,1fr) 37px}.custom-change{grid-template-columns:27px minmax(0,1fr) 27px}.score-btn{padding:4px 1px}.custom-input{padding:3px 1px;font-size:12px}}
     @media(max-width:390px){h1{font-size:13px}.btn{font-size:10px;padding:5px 6px}.controls{grid-template-columns:38px minmax(0,1fr) 38px}.custom-change{grid-template-columns:28px minmax(0,1fr) 28px}}
   </style>
@@ -80,7 +81,7 @@
 <body>
 <main class="app">
   <header>
-    <div class="brandline"><h1>Realm Counter</h1><span class="version">v8</span></div>
+    <div class="brandline"><h1>Star Realm Counter v.0.10</h1></div>
     <div class="top-actions">
       <button id="undoBtn" class="btn secondary">↶</button>
       <button id="wakeBtn" class="btn secondary">☀</button>
@@ -122,18 +123,16 @@
 </dialog>
 
 
-<dialog id="gameOverDialog">
-  <div class="gameover-title">Spiel beendet</div>
-  <p id="gameOverWinner" class="gameover-winner"></p>
-  <div class="gameover-actions">
-    <button id="continueSeriesBtn" class="btn">Neues Spiel</button>
-    <button id="endSeriesBtn" class="btn secondary" aria-label="Serie beenden">×</button>
-  </div>
-</dialog>
+
+
+<div id="endActions" class="end-actions" aria-label="Spiel beendet">
+  <button id="continueSeriesBtn" class="round-end-btn restart" aria-label="Neues Spiel" title="Neues Spiel">↻</button>
+  <button id="endSeriesBtn" class="round-end-btn close" aria-label="Serie beenden" title="Serie beenden">×</button>
+</div>
 
 <script>
-const STORAGE_KEY="realm-counter-state-v8";
-const OLD_STORAGE_KEYS=["realm-counter-state-v7","realm-counter-state-v6","realm-counter-state-v5","realm-counter-state-v4","realm-counter-state-v3","realm-counter-state-v2","realm-counter-state-v1"];
+const STORAGE_KEY="realm-counter-state-v10";
+const OLD_STORAGE_KEYS=["realm-counter-state-v9","realm-counter-state-v8","realm-counter-state-v7","realm-counter-state-v6","realm-counter-state-v5","realm-counter-state-v4","realm-counter-state-v3","realm-counter-state-v2","realm-counter-state-v1"];
 const MAX_PLAYERS=4, MIN_PLAYERS=2;
 const defaultState=()=>({startScore:50,mode:"ffa",bossIndex:0,players:[
   {id:crypto.randomUUID(),name:"Spieler 1",score:50,wins:0},
@@ -153,7 +152,7 @@ logBtn=document.getElementById("logBtn"),settingsBtn=document.getElementById("se
 wakeStatusEl=document.getElementById("wakeStatus"),logEl=document.getElementById("log"),clearLogBtn=document.getElementById("clearLogBtn"),
 scoreDialog=document.getElementById("scoreDialog"),scoreInput=document.getElementById("scoreInput"),scoreForm=document.getElementById("scoreForm"),
 settingsDialog=document.getElementById("settingsDialog"),logDialog=document.getElementById("logDialog"),
-gameOverDialog=document.getElementById("gameOverDialog"),gameOverWinner=document.getElementById("gameOverWinner"),
+endActions=document.getElementById("endActions"),
 continueSeriesBtn=document.getElementById("continueSeriesBtn"),endSeriesBtn=document.getElementById("endSeriesBtn");
 
 let editingPlayerId=null,wakeLock=null,wakeRequested=false;
@@ -227,6 +226,7 @@ function render(){
   }
   undoBtn.disabled=!state.history.length;
   addBtn.disabled=state.players.length>=MAX_PLAYERS;
+  endActions.classList.toggle("show",!!state.gameOver);
   renderLog(); updateWakeUi(); save()
 }
 
@@ -287,18 +287,7 @@ function checkForGameOver(){
 
 function showGameOver(){
   if(!state.gameOver)return;
-  const winners=state.players.filter(p=>(state.winnerIds||[]).includes(p.id));
-  if(state.mode==="boss"){
-    const boss=state.players[state.bossIndex];
-    if(winners.length===1&&winners[0].id===boss?.id){
-      gameOverWinner.textContent=`${boss.name} gewinnt als Boss und erhält 2 Punkte.`;
-    }else{
-      gameOverWinner.textContent="Das Team gewinnt. Alle Nicht-Boss-Spieler erhalten je 1 Punkt.";
-    }
-  }else{
-    gameOverWinner.textContent=winners.length===1?`${winners[0].name} gewinnt die Partie.`:"Partie beendet.";
-  }
-  if(!gameOverDialog.open)gameOverDialog.showModal();
+  endActions.classList.add("show");
 }
 
 function startNextGame(){
@@ -309,7 +298,6 @@ function startNextGame(){
   state.history=[];
   state.log.unshift({id:crypto.randomUUID(),time:Date.now(),player:"Serie",delta:0,from:0,to:0,type:"newgame"});
   save();
-  if(gameOverDialog.open)gameOverDialog.close();
   render();
 }
 
@@ -321,7 +309,6 @@ function endSeries(){
   state.history=[];
   state.log=[];
   save();
-  if(gameOverDialog.open)gameOverDialog.close();
   render();
 }
 
@@ -375,8 +362,8 @@ scoreForm.addEventListener("submit",()=>{
   editingPlayerId=null
 });
 
-undoBtn.addEventListener("click",()=>{const prev=state.history.pop();if(!prev)return;state.players=prev.players;state.startScore=prev.startScore;state.mode=prev.mode||"ffa";state.bossIndex=prev.bossIndex||0;state.log=prev.log;state.gameOver=prev.gameOver;state.winnerIds=prev.winnerIds||[];if(gameOverDialog.open)gameOverDialog.close();render();if(state.gameOver)showGameOver()});
-newBtn.addEventListener("click",()=>{if(!confirm(`Aktuelle Partie zurücksetzen? Die Serie bleibt erhalten.`))return;snapshot();state.gameOver=false;state.winnerIds=[];state.players=state.players.map((p,i)=>({...p,name:p.name||`Spieler ${i+1}`,score:state.startScore}));state.log=[];if(gameOverDialog.open)gameOverDialog.close();render()});
+undoBtn.addEventListener("click",()=>{const prev=state.history.pop();if(!prev)return;state.players=prev.players;state.startScore=prev.startScore;state.mode=prev.mode||"ffa";state.bossIndex=prev.bossIndex||0;state.log=prev.log;state.gameOver=prev.gameOver;state.winnerIds=prev.winnerIds||[];render();if(state.gameOver)showGameOver()});
+newBtn.addEventListener("click",()=>{if(!confirm(`Aktuelle Partie zurücksetzen? Die Serie bleibt erhalten.`))return;snapshot();state.gameOver=false;state.winnerIds=[];state.players=state.players.map((p,i)=>({...p,name:p.name||`Spieler ${i+1}`,score:state.startScore}));state.log=[];render()});
 addBtn.addEventListener("click",addPlayer);
 startScoreEl.addEventListener("change",()=>{state.startScore=Math.max(1,Math.min(999,Number(startScoreEl.value)||50));save();render()});
 modeSelect.addEventListener("change",()=>{

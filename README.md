@@ -1,17 +1,19 @@
-# Realm Counter v8
+# Star Realm Counter v.0.10
 
 Neu:
-- Versionsanzeige oben: v8
-- Spielmodi FFA und Boss Mode
-- FFA: alle gegen alle; letzter Spieler über 0 gewinnt 1 Serienpunkt
-- Boss Mode: ein Spieler ist Boss, die übrigen bilden das Team
-- Boss wird oben dargestellt, bis zu drei Gegner darunter
-- Boss-Sieg: 2 Serienpunkte
-- Team-Sieg: jeder Nicht-Boss-Spieler erhält 1 Serienpunkt
-- Nach "Neues Spiel" rotiert die Boss-Rolle zum nächsten Spieler
-- Wechsel des Spielmodus startet eine neue Serie und setzt Serienpunkte zurück
+- Nach Spielende kein Popup mehr.
+- Die Aktionen erscheinen direkt in der Oberfläche.
+- Runder ↻-Button: nächste Partie starten / Serie fortsetzen.
+- Runder ×-Button: Serie beenden, Serienpunkte löschen und Punkte zurücksetzen.
+- Die Buttons liegen dezent unten mittig über der Spielfläche.
 
-Bestehend:
+Spielmodi:
+- FFA: letzter aktiver Spieler gewinnt 1 Serienpunkt.
+- Boss Mode: Boss-Sieg = 2 Serienpunkte.
+- Team-Sieg = jeder Nicht-Boss-Spieler erhält 1 Serienpunkt.
+- Nach einer Boss-Partie rotiert der Boss beim Start der nächsten Partie.
+
+Weitere Funktionen:
 - 4 Spieler ohne Seitenscrollen
 - Eliminierung bei 0
 - Log hinter Button

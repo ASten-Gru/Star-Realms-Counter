@@ -1,6 +1,6 @@
 {
-  "name": "Realm Counter",
-  "short_name": "Realm Counter",
+  "name": "Star Realm Counter v.0.10",
+  "short_name": "Star Realm Counter",
   "description": "Punktezähler für Kartenspiele",
   "start_url": "./",
   "display": "standalone",
