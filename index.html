@@ -6,7 +6,7 @@
   <meta name="theme-color" content="#06111f" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-  <title>Star Realm Counter v.0.27</title>
+  <title>Star Realm Counter v.0.28</title>
   <link rel="manifest" href="manifest.webmanifest" />
   <style>
     :root{
@@ -289,6 +289,19 @@
   pointer-events:auto;
 }
 
+
+/* v0.28 – point-change indicator above the Authority number */
+.card .score-wrap .delta-float{
+  top:calc(50% - 58px)!important;
+  left:50%!important;
+}
+.team-score-center .team-delta{
+  top:-28px!important;
+  left:50%!important;
+  z-index:9!important;
+  white-space:nowrap;
+}
+
 </style>
 </head>
 <body>
@@ -296,7 +309,7 @@
   <header class="topbar">
     <div aria-hidden="true"></div>
     <div class="title-wrap">
-      <h1 class="title">Star Realm Counter v.0.27</h1>
+      <h1 class="title">Star Realm Counter v.0.28</h1>
       <div class="subtitle">Trade · Attack · Dominate</div>
     </div>
     <button id="settingsBtn" class="icon-btn" aria-label="Einstellungen">⚙</button>
@@ -350,7 +363,7 @@
 </dialog>
 
 <script>
-const STORAGE_KEY="realm-counter-state-v27";
+const STORAGE_KEY="realm-counter-state-v28";
 const OLD_STORAGE_KEYS=["realm-counter-state-v13","realm-counter-state-v12","realm-counter-state-v11","realm-counter-state-v10","realm-counter-state-v9","realm-counter-state-v8","realm-counter-state-v7","realm-counter-state-v6","realm-counter-state-v5","realm-counter-state-v4","realm-counter-state-v3","realm-counter-state-v2","realm-counter-state-v1"];
 const MAX_PLAYERS=4,MIN_PLAYERS=2;
 const FACTIONS=[
@@ -490,8 +503,9 @@ function changeTeamScore(team,delta){
   const from=Number(state.teamScores?.[team] ?? 75);
   const to=Math.max(0,Math.min(9999,from+delta));
   state.teamScores[team]=to;
+  const actual=to-from;
 
-  addLog({name:team===0?"Team A":"Team B"},to-from,from,to);
+  addLog({name:team===0?"Team A":"Team B"},actual,from,to);
 
   if(to===0){
     const winningTeam=team===0?1:0;
@@ -502,6 +516,7 @@ function changeTeamScore(team,delta){
   }
 
   render();
+  requestAnimationFrame(()=>flashDelta(`team-${team}`,actual));
 }
 function renderTeam(){
   ensureTeamMode();
@@ -534,6 +549,7 @@ function renderTeam(){
         }).join("")}
 
         <div class="team-score-center">
+          <div id="delta-team-${team}" class="delta-float team-delta"></div>
           <div class="team-score">${state.teamScores[team]}</div>
         </div>
       </div>

@@ -1,4 +1,4 @@
-# Star Realm Counter v0.27
+# Star Realm Counter v0.28
 
 Mobile, installierbare PWA zum Zählen von Authority/Punkten und Serienpunkten bei Star-Realms-artigen Kartenspielen.
 
@@ -210,10 +210,10 @@ Nach dem Ersetzen geänderter Dateien und dem Commit wird die neue Version über
 
 ## Version
 
-Aktueller Stand: **v0.27**
+Aktueller Stand: **v0.28**
 
 
-### Änderungen in v0.27
+### Änderungen in v0.28
 
 - Im Boss-Modus stehen Boss-/Team-Plakette und Handkarten-Anzeige direkt unter Fraktionssymbol und Serienpunkten.
 - Die Authority-Anzeigen sind in den Spielerfenstern vertikal zentriert.
@@ -221,9 +221,15 @@ Aktueller Stand: **v0.27**
 
 
 
-### Änderungen in v0.27
+### Änderungen in v0.28
 
 - Hintergrundmusik und Soundeffekte wurden vollständig entfernt.
 - Die Audio-Einstellungen im Zahnrad-Menü wurden entfernt.
 - Das linke Hamburger-Menü bleibt entfernt.
 - Alle übrigen Funktionen und Layout-Änderungen bleiben erhalten.
+
+
+### Änderungen in v0.28
+
+- Der kumulative 3-Sekunden-Änderungszähler ist jetzt auch im Team-Modus vorhanden.
+- Die Änderungszahl erscheint in allen Modi oberhalb der großen Authority-Zahl und startet nicht mehr direkt in der Punktzahl.
