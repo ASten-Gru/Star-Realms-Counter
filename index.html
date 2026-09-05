@@ -3,140 +3,270 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-  <meta name="theme-color" content="#0b1020" />
+  <meta name="theme-color" content="#06111f" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-  <title>Star Realm Counter v.0.10</title>
+  <title>Star Realm Counter v.0.12</title>
   <link rel="manifest" href="manifest.webmanifest" />
   <style>
     :root{
       color-scheme:dark;
-      --bg:#07111f;--panel:#101a2e;--panel2:#16233d;--text:#f4f7fb;
-      --muted:#9badc6;--danger:#ff6b6b;--ok:#63d297;--line:#263754;
+      --bg:#030914;
+      --panel:#071625;
+      --panel2:#0b2034;
+      --line:#1e5678;
+      --text:#f3f7fb;
+      --muted:#8ea8bc;
+      --cyan:#22b9ff;
+      --green:#42db7c;
+      --red:#ff4d59;
+      --yellow:#f1cd34;
+      --blue:#3aa8ff;
+      --shadow:0 10px 28px rgba(0,0,0,.4);
     }
     *{box-sizing:border-box}
-    html,body{margin:0;width:100%;height:100%;overflow:hidden;background:var(--bg);color:var(--text);
-      font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
-    body{min-height:100dvh;padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left)}
-    button,input{font:inherit} button{touch-action:manipulation}
-    .app{height:100dvh;display:grid;grid-template-rows:auto minmax(0,1fr);gap:5px;padding:5px;overflow:hidden}
-    header{display:flex;align-items:center;justify-content:space-between;gap:6px;min-height:34px}
-    h1{font-size:15px;line-height:1;margin:0;white-space:nowrap}.brandline{display:flex;align-items:center;gap:6px}
-    .top-actions{display:flex;gap:4px;min-width:0}
-    .btn{border:1px solid var(--line);background:var(--panel2);color:var(--text);padding:6px 8px;border-radius:9px;font-weight:750;font-size:11px;white-space:nowrap}
-    .btn.secondary{background:transparent}.btn.danger{border-color:#5d2b36;color:#ffd5d8}
-    .players{min-height:0;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));grid-template-rows:repeat(2,minmax(0,1fr));gap:5px}
+    html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#020812;color:var(--text);font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+    body{
+      min-height:100dvh;
+      background:
+        radial-gradient(circle at 72% 10%,rgba(42,111,178,.22),transparent 24%),
+        radial-gradient(circle at 18% 82%,rgba(9,71,126,.18),transparent 26%),
+        radial-gradient(circle at 20% 20%,rgba(255,255,255,.09) 0 1px,transparent 1.5px),
+        radial-gradient(circle at 70% 30%,rgba(255,255,255,.08) 0 1px,transparent 1.4px),
+        radial-gradient(circle at 40% 70%,rgba(255,255,255,.08) 0 1px,transparent 1.4px),
+        linear-gradient(180deg,#03101d,#020811 60%,#03111e);
+      background-size:auto,auto,130px 130px,180px 180px,220px 220px,auto;
+      padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+    }
+    button,input,select{font:inherit}
+    button{touch-action:manipulation}
+
+    .app{
+      height:100dvh;
+      display:grid;
+      grid-template-rows:auto auto minmax(0,1fr) auto;
+      gap:6px;
+      padding:6px;
+      overflow:hidden;
+    }
+
+    .topbar{display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:8px}
+    .icon-btn{
+      width:38px;height:38px;border:1px solid #1e6c96;border-radius:10px;
+      background:linear-gradient(180deg,#092138,#061522);color:#b7dbef;font-size:19px;
+      box-shadow:inset 0 0 18px rgba(34,185,255,.08);
+    }
+    .title-wrap{text-align:center;min-width:0}
+    .title{
+      margin:0;font-size:clamp(18px,4.2vw,30px);line-height:.95;font-weight:950;letter-spacing:.03em;
+      text-transform:uppercase;color:#f7f8f9;text-shadow:0 2px 0 #60717c,0 4px 12px rgba(0,0,0,.8)
+    }
+    .subtitle{font-size:10px;letter-spacing:.25em;color:#a9bfd0;margin-top:3px;text-transform:uppercase}
+
+    .mode-tabs{display:grid;grid-template-columns:1fr 1fr;gap:5px;max-width:480px;width:100%;justify-self:center}
+    .mode-btn{
+      border:1px solid #174c69;border-radius:10px;padding:8px 10px;background:#071726;color:#8fa9bb;
+      font-weight:850;letter-spacing:.06em;text-transform:uppercase
+    }
+    .mode-btn.active{
+      color:#dff6ff;border-color:#28bfff;
+      background:linear-gradient(180deg,#0d4d71,#0a2d45);
+      box-shadow:inset 0 0 24px rgba(34,185,255,.18),0 0 12px rgba(34,185,255,.18)
+    }
+
+    .players{
+      min-height:0;
+      display:grid;
+      grid-template-columns:repeat(2,minmax(0,1fr));
+      grid-template-rows:repeat(2,minmax(0,1fr));
+      gap:6px
+    }
     .players.boss-mode{grid-template-columns:repeat(3,minmax(0,1fr));grid-template-rows:minmax(0,1fr) minmax(0,1fr)}
     .players.boss-mode .boss-card{grid-column:1 / -1}
     .players.boss-mode.boss-two{grid-template-columns:1fr;grid-template-rows:repeat(2,minmax(0,1fr))}
     .players.boss-mode.boss-two .boss-card{grid-column:1}
     .players.boss-mode.boss-three{grid-template-columns:repeat(2,minmax(0,1fr))}
     .players.boss-mode.boss-three .boss-card{grid-column:1 / -1}
-    .card{position:relative;min-width:0;min-height:0;background:linear-gradient(180deg,#16233d,#0e192d);
-      border:1px solid var(--line);border-radius:13px;padding:6px;display:grid;grid-template-rows:auto minmax(0,1fr) auto;overflow:hidden}
-    .card.dead{opacity:.62;filter:saturate(.55)}
-    .empty-slot{border:1px dashed var(--line);border-radius:13px;display:flex;align-items:center;justify-content:center}
-    .empty-slot button{font-size:13px}
-    .player-head{display:flex;align-items:center;gap:3px;min-width:0;position:relative;padding-right:38px}
-    .name{width:100%;min-width:0;background:transparent;border:0;color:var(--text);font-weight:800;font-size:13px;outline:none;padding:2px}
-    .remove{width:24px;height:24px;flex:0 0 24px;padding:0;border-radius:7px;border:1px solid var(--line);background:transparent;color:var(--muted);font-weight:900}
-    .series-wins{position:absolute;right:0;top:0;min-width:32px;height:24px;display:flex;align-items:center;justify-content:center;gap:3px;border-radius:8px;background:rgba(255,255,255,.05);border:1px solid var(--line);font-size:11px;font-weight:800;color:#f4d77f}
-    .role-badge{position:absolute;left:6px;top:30px;z-index:3;padding:2px 6px;border-radius:999px;border:1px solid var(--line);background:rgba(7,17,31,.78);font-size:9px;font-weight:900;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
-    .boss-card .role-badge{color:#f4d77f;border-color:#6a5b2d}
-    .winner-card{outline:2px solid rgba(244,215,127,.65);box-shadow:0 0 0 2px rgba(244,215,127,.08) inset}
-    .winner-trophy{position:absolute;left:50%;top:38%;transform:translate(-50%,-50%);font-size:clamp(34px,6vh,58px);filter:drop-shadow(0 4px 8px rgba(0,0,0,.35));pointer-events:none;z-index:2}
-    .game-over-lock .controls,.game-over-lock .remove{pointer-events:none;opacity:.45}
-    .score-wrap{min-height:0;display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden}
-    .score{border:0;background:transparent;color:var(--text);font-size:clamp(38px,8.8vh,78px);font-weight:900;line-height:.92;letter-spacing:-.05em;padding:2px 6px}
-    .score.zero{color:var(--danger)}
-    .delta-float{position:absolute;left:50%;top:0;transform:translateX(-50%);font-size:clamp(17px,3vh,25px);font-weight:900;opacity:0;pointer-events:none}
-    .delta-float.show{animation:fadeDelta 3s ease forwards}.delta-float.plus{color:var(--ok)}.delta-float.minus{color:var(--danger)}
-    @keyframes fadeDelta{0%{opacity:0;transform:translate(-50%,5px)}12%{opacity:1;transform:translate(-50%,0)}70%{opacity:1}100%{opacity:0;transform:translate(-50%,-8px)}}
-    .controls{display:grid;grid-template-columns:42px minmax(0,1fr) 42px;gap:3px}
-    .score-btn{border:1px solid var(--line);padding:7px 1px;border-radius:9px;font-size:17px;font-weight:900}
-    .score-btn.minus,.custom-minus{background:#2b151a;border-color:#553039;color:#ffd0d4}
-    .score-btn.plus,.custom-plus{background:#10291f;border-color:#214b3a;color:#bff4d6}
-    .custom-change{min-width:0;display:grid;grid-template-columns:31px minmax(0,1fr) 31px;gap:3px}
-    .custom-input{width:100%;min-width:0;background:#091321;color:var(--text);border:1px solid var(--line);border-radius:8px;padding:5px 2px;text-align:center;font-size:14px;font-weight:800}
-    .apply-btn{border:1px solid var(--line);border-radius:8px;padding:0;font-size:17px;font-weight:900}
-    dialog{border:1px solid var(--line);background:#0e192c;color:var(--text);border-radius:15px;width:min(92vw,420px);max-height:82dvh;overflow:auto}
-    dialog::backdrop{background:rgba(0,0,0,.7)}
-    .dialog-row{display:flex;gap:8px;align-items:center;margin-top:12px}.dialog-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:14px}
-    dialog input{background:#091321;color:var(--text);border:1px solid var(--line);border-radius:9px;padding:9px;font-weight:800}
-    .settings-row{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-top:10px}
-    .hint{color:var(--muted);font-size:12px}
-    .log{display:flex;flex-direction:column;gap:4px;max-height:60dvh;overflow:auto}
-    .log-entry{display:grid;grid-template-columns:58px minmax(0,1fr) auto;gap:7px;padding:6px 0;border-top:1px solid rgba(38,55,84,.7);font-size:12px}
-    .log-entry:first-child{border-top:0}.log-time{color:var(--muted)}.log-change.plus{color:var(--ok);font-weight:800}.log-change.minus{color:var(--danger);font-weight:800}
 
-    .end-actions{position:fixed;left:50%;bottom:calc(10px + env(safe-area-inset-bottom));transform:translateX(-50%);z-index:20;display:none;gap:12px;align-items:center}
-    .end-actions.show{display:flex}
-    .round-end-btn{width:48px;height:48px;border-radius:50%;border:1px solid var(--line);background:rgba(16,26,46,.94);color:var(--text);font-size:23px;font-weight:900;display:flex;align-items:center;justify-content:center;box-shadow:0 5px 18px rgba(0,0,0,.35);backdrop-filter:blur(8px)}
-    .round-end-btn.restart{color:#bff4d6;border-color:#315d49}
-    .round-end-btn.close{color:#ffd0d4;border-color:#63343c}
-    @media(max-height:650px){.app{padding:3px;gap:3px}header{min-height:29px}.btn{padding:5px 6px}.card{padding:4px}.score{font-size:clamp(31px,7.4vh,55px)}.controls{grid-template-columns:37px minmax(0,1fr) 37px}.custom-change{grid-template-columns:27px minmax(0,1fr) 27px}.score-btn{padding:4px 1px}.custom-input{padding:3px 1px;font-size:12px}}
-    @media(max-width:390px){h1{font-size:13px}.btn{font-size:10px;padding:5px 6px}.controls{grid-template-columns:38px minmax(0,1fr) 38px}.custom-change{grid-template-columns:28px minmax(0,1fr) 28px}}
+    .card{
+      --accent:#53657a;
+      --accent2:#26384e;
+      position:relative;min-width:0;min-height:0;
+      border:1px solid color-mix(in srgb,var(--accent) 78%,#ffffff 0%);
+      border-radius:12px;
+      overflow:hidden;
+      display:grid;
+      grid-template-rows:auto minmax(0,1fr) auto;
+      background:
+        linear-gradient(180deg,rgba(9,17,30,.08),rgba(3,8,15,.72)),
+        radial-gradient(circle at 50% 15%,color-mix(in srgb,var(--accent) 20%,transparent),transparent 52%),
+        linear-gradient(180deg,#0b1826,#07111d);
+      box-shadow:inset 0 0 26px color-mix(in srgb,var(--accent) 12%,transparent),var(--shadow);
+    }
+    .card::before{
+      content:"";position:absolute;inset:0;pointer-events:none;opacity:.16;
+      background:
+        radial-gradient(circle at 20% 20%,#fff 0 1px,transparent 1.4px),
+        radial-gradient(circle at 75% 35%,#fff 0 1px,transparent 1.4px),
+        radial-gradient(circle at 40% 78%,#fff 0 1px,transparent 1.4px);
+      background-size:95px 95px,130px 130px,160px 160px;
+    }
+    .faction-empire{--accent:#f1cd34;--accent2:#6d5c11}
+    .faction-machine{--accent:#ff4b57;--accent2:#6b1c23}
+    .faction-trade{--accent:#39a9ff;--accent2:#154a72}
+    .faction-blob{--accent:#47d76d;--accent2:#18562b}
+
+    .dead{opacity:.52;filter:saturate(.55)}
+    .winner-card{outline:2px solid rgba(255,226,112,.72)}
+    .game-over-lock .controls,.game-over-lock .remove,.game-over-lock .faction-select{pointer-events:none;opacity:.48}
+
+    .card-top{position:relative;z-index:2;display:grid;grid-template-columns:minmax(0,1fr) auto;gap:4px;padding:5px}
+    .faction-select{
+      min-width:0;width:100%;border:1px solid color-mix(in srgb,var(--accent) 65%,#233a4a);
+      border-radius:8px;background:#061522;color:#eef8ff;font-weight:850;font-size:12px;padding:6px 28px 6px 8px;
+      appearance:none;
+      background-image:linear-gradient(45deg,transparent 50%,#a8c8da 50%),linear-gradient(135deg,#a8c8da 50%,transparent 50%);
+      background-position:calc(100% - 12px) 50%,calc(100% - 7px) 50%;background-size:5px 5px;background-repeat:no-repeat
+    }
+    .series-points{
+      min-width:34px;padding:0 7px;height:30px;border-radius:8px;border:1px solid color-mix(in srgb,var(--accent) 60%,#2a4255);
+      display:flex;align-items:center;justify-content:center;gap:3px;background:rgba(3,11,18,.72);font-size:11px;font-weight:900;color:#f7dc76
+    }
+
+    .identity{position:relative;z-index:2;display:grid;grid-template-columns:minmax(0,1fr) auto;gap:4px;padding:0 5px 4px}
+    .name{width:100%;min-width:0;border:1px solid #29465e;border-radius:8px;background:#071624;color:#f4f7fb;font-weight:800;font-size:12px;padding:5px 7px;outline:none}
+    .remove{width:30px;border:1px solid #29465e;border-radius:8px;background:#071624;color:#9fb4c4;font-weight:900}
+
+    .score-wrap{min-height:0;display:flex;align-items:center;justify-content:center;position:relative;z-index:2}
+    .score{
+      border:0;background:transparent;color:#fff;font-size:clamp(36px,8.2vh,76px);font-weight:950;line-height:.92;
+      text-shadow:0 3px 0 #5c6771,0 7px 18px rgba(0,0,0,.75);letter-spacing:-.05em;padding:2px 6px
+    }
+    .score.zero{color:#ff777d}
+    .winner-trophy{position:absolute;left:50%;top:12%;transform:translateX(-50%);font-size:clamp(25px,4.6vh,42px);filter:drop-shadow(0 4px 8px rgba(0,0,0,.45))}
+    .role-badge{
+      position:absolute;left:6px;top:40px;z-index:3;padding:2px 6px;border-radius:999px;
+      border:1px solid #29465e;background:rgba(2,9,16,.82);font-size:8px;font-weight:900;letter-spacing:.08em;text-transform:uppercase;color:#9eb2bf
+    }
+    .boss-card .role-badge{color:#f7dc76;border-color:#6c5b2c}
+
+    .delta-float{position:absolute;left:50%;top:3px;transform:translateX(-50%);font-size:clamp(16px,2.8vh,23px);font-weight:950;opacity:0}
+    .delta-float.show{animation:fadeDelta 3s ease forwards}.delta-float.plus{color:#5de58a}.delta-float.minus{color:#ff737a}
+    @keyframes fadeDelta{0%{opacity:0;transform:translate(-50%,5px)}12%{opacity:1;transform:translate(-50%,0)}70%{opacity:1}100%{opacity:0;transform:translate(-50%,-8px)}}
+
+    .controls{position:relative;z-index:2;display:grid;grid-template-columns:1fr 1fr;grid-template-rows:auto auto;gap:4px;padding:5px}
+    .score-btn{border-radius:9px;padding:6px 2px;font-size:15px;font-weight:950;border:1px solid}
+    .score-btn.minus{background:linear-gradient(180deg,#7d1d25,#501219);border-color:#ff4c58;color:#fff}
+    .score-btn.plus{background:linear-gradient(180deg,#16753d,#0d4826);border-color:#45d979;color:#fff}
+    .custom-change{grid-column:1/-1;display:grid;grid-template-columns:34px minmax(0,1fr) 34px;gap:4px}
+    .custom-input{width:100%;min-width:0;border:1px solid #35546b;border-radius:8px;background:#061522;color:#fff;text-align:center;padding:5px 2px;font-weight:850}
+    .apply-btn{border-radius:8px;border:1px solid #35546b;background:#0b1d2e;color:#eef7fc;font-size:17px;font-weight:950}
+    .custom-minus{border-color:#6f3137}.custom-plus{border-color:#2b6042}
+
+    .empty-slot{border:1px dashed #27465d;border-radius:12px;display:flex;align-items:center;justify-content:center;background:rgba(5,15,25,.42)}
+    .small-btn{border:1px solid #1f5b79;border-radius:9px;background:#071726;color:#b7ccda;padding:7px 10px;font-weight:800;font-size:11px}
+
+    .bottom-bar{display:flex;align-items:center;justify-content:space-between;gap:6px}
+    .bottom-left,.bottom-right{display:flex;gap:5px;align-items:center}
+    .status{font-size:10px;color:#86a1b4;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .round-end-btn{
+      width:42px;height:42px;border-radius:50%;border:1px solid #456276;background:rgba(9,20,31,.94);color:#eef7fc;
+      font-size:21px;font-weight:950;display:none;align-items:center;justify-content:center;box-shadow:0 5px 18px rgba(0,0,0,.35)
+    }
+    .round-end-btn.show{display:flex}.round-end-btn.restart{border-color:#3d7154}.round-end-btn.close{border-color:#74414a}
+
+    dialog{border:1px solid #255675;background:#071522;color:#eef7fc;border-radius:14px;width:min(92vw,420px);max-height:82dvh;overflow:auto;box-shadow:0 18px 40px rgba(0,0,0,.55)}
+    dialog::backdrop{background:rgba(0,0,0,.74)}
+    .dialog-row,.settings-row{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-top:10px}
+    .dialog-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:14px}
+    dialog input,dialog select{background:#061522;color:#fff;border:1px solid #31546a;border-radius:8px;padding:8px;font-weight:800}
+    .hint{color:#8ba4b5;font-size:11px}
+    .log{display:flex;flex-direction:column;gap:4px;max-height:60dvh;overflow:auto}
+    .log-entry{display:grid;grid-template-columns:58px minmax(0,1fr) auto;gap:7px;padding:6px 0;border-top:1px solid #17384d;font-size:11px}
+    .log-time{color:#7f9aae}.log-change.plus{color:#55df86}.log-change.minus{color:#ff777d}
+
+    @media(max-height:680px){
+      .app{padding:4px;gap:4px}
+      .icon-btn{width:32px;height:32px;font-size:16px}
+      .mode-btn{padding:5px 8px;font-size:11px}
+      .card-top{padding:4px}.identity{padding:0 4px 3px}.controls{padding:4px}
+      .score{font-size:clamp(30px,7.2vh,54px)}
+      .score-btn{padding:4px 2px;font-size:13px}
+      .custom-input{padding:3px 2px;font-size:12px}
+      .round-end-btn{width:36px;height:36px;font-size:18px}
+    }
   </style>
 </head>
 <body>
 <main class="app">
-  <header>
-    <div class="brandline"><h1>Star Realm Counter v.0.10</h1></div>
-    <div class="top-actions">
-      <button id="undoBtn" class="btn secondary">↶</button>
-      <button id="wakeBtn" class="btn secondary">☀</button>
-      <button id="logBtn" class="btn secondary">Log</button>
-      <button id="settingsBtn" class="btn secondary">⚙</button>
-      <button id="newBtn" class="btn danger">Neu</button>
+  <header class="topbar">
+    <button id="menuBtn" class="icon-btn" aria-label="Menü">☰</button>
+    <div class="title-wrap">
+      <h1 class="title">Star Realm Counter v.0.12</h1>
+      <div class="subtitle">Trade · Attack · Dominate</div>
     </div>
+    <button id="settingsBtn" class="icon-btn" aria-label="Einstellungen">⚙</button>
   </header>
+
+  <div class="mode-tabs">
+    <button id="ffaBtn" class="mode-btn">⚔ FFA</button>
+    <button id="bossBtn" class="mode-btn">☠ Boss</button>
+  </div>
+
   <section id="players" class="players"></section>
+
+  <footer class="bottom-bar">
+    <div class="bottom-left">
+      <button id="undoBtn" class="small-btn">↶ Undo</button>
+      <button id="logBtn" class="small-btn">Log</button>
+      <button id="wakeBtn" class="small-btn">☀</button>
+    </div>
+    <div id="status" class="status"></div>
+    <div class="bottom-right">
+      <button id="continueSeriesBtn" class="round-end-btn restart" aria-label="Neues Spiel" title="Neues Spiel">↻</button>
+      <button id="endSeriesBtn" class="round-end-btn close" aria-label="Serie beenden" title="Serie beenden">×</button>
+    </div>
+  </footer>
 </main>
 
 <dialog id="scoreDialog">
   <form method="dialog" id="scoreForm">
     <strong>Punktestand setzen</strong>
     <div class="dialog-row"><input id="scoreInput" type="number" inputmode="numeric" min="0" max="9999"></div>
-    <div class="dialog-actions"><button value="cancel" class="btn secondary">Abbrechen</button><button value="default" class="btn">Speichern</button></div>
+    <div class="dialog-actions"><button value="cancel" class="small-btn">Abbrechen</button><button value="default" class="small-btn">Speichern</button></div>
   </form>
 </dialog>
 
 <dialog id="settingsDialog">
   <strong>Einstellungen</strong>
-  <div class="settings-row"><label for="modeSelect">Spielmodus</label>
-    <select id="modeSelect" class="btn">
-      <option value="ffa">FFA</option>
-      <option value="boss">Boss Mode</option>
-    </select></div>
   <div class="settings-row"><label for="startScore">Startpunkte</label><input id="startScore" type="number" inputmode="numeric" min="1" max="999" value="50"></div>
-  <div class="settings-row"><span>Spieler</span><button id="addBtn" class="btn">+ Spieler</button></div>
+  <div class="settings-row"><span>Spieler</span><button id="addBtn" class="small-btn">+ Spieler</button></div>
   <p id="wakeStatus" class="hint"></p>
-  <div class="dialog-actions"><button id="closeSettingsBtn" class="btn">Schließen</button></div>
+  <div class="dialog-actions"><button id="closeSettingsBtn" class="small-btn">Schließen</button></div>
 </dialog>
 
 <dialog id="logDialog">
   <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:8px">
-    <strong>Spielverlauf</strong><button id="clearLogBtn" class="btn secondary">Löschen</button>
+    <strong>Spielverlauf</strong><button id="clearLogBtn" class="small-btn">Löschen</button>
   </div>
   <div id="log" class="log"></div>
-  <div class="dialog-actions"><button id="closeLogBtn" class="btn">Schließen</button></div>
+  <div class="dialog-actions"><button id="closeLogBtn" class="small-btn">Schließen</button></div>
 </dialog>
 
-
-
-
-<div id="endActions" class="end-actions" aria-label="Spiel beendet">
-  <button id="continueSeriesBtn" class="round-end-btn restart" aria-label="Neues Spiel" title="Neues Spiel">↻</button>
-  <button id="endSeriesBtn" class="round-end-btn close" aria-label="Serie beenden" title="Serie beenden">×</button>
-</div>
-
 <script>
-const STORAGE_KEY="realm-counter-state-v10";
-const OLD_STORAGE_KEYS=["realm-counter-state-v9","realm-counter-state-v8","realm-counter-state-v7","realm-counter-state-v6","realm-counter-state-v5","realm-counter-state-v4","realm-counter-state-v3","realm-counter-state-v2","realm-counter-state-v1"];
-const MAX_PLAYERS=4, MIN_PLAYERS=2;
+const STORAGE_KEY="realm-counter-state-v12";
+const OLD_STORAGE_KEYS=["realm-counter-state-v11","realm-counter-state-v10","realm-counter-state-v9","realm-counter-state-v8","realm-counter-state-v7","realm-counter-state-v6","realm-counter-state-v5","realm-counter-state-v4","realm-counter-state-v3","realm-counter-state-v2","realm-counter-state-v1"];
+const MAX_PLAYERS=4,MIN_PLAYERS=2;
+const FACTIONS=[
+  {id:"empire",name:"Star Empire",className:"faction-empire"},
+  {id:"machine",name:"Machine Cult",className:"faction-machine"},
+  {id:"trade",name:"Trade Federation",className:"faction-trade"},
+  {id:"blob",name:"Blob",className:"faction-blob"}
+];
+
 const defaultState=()=>({startScore:50,mode:"ffa",bossIndex:0,players:[
-  {id:crypto.randomUUID(),name:"Spieler 1",score:50,wins:0},
-  {id:crypto.randomUUID(),name:"Spieler 2",score:50,wins:0}
+  {id:crypto.randomUUID(),name:"Spieler 1",score:50,wins:0,faction:"empire"},
+  {id:crypto.randomUUID(),name:"Spieler 2",score:50,wins:0,faction:"machine"}
 ],history:[],log:[],gameOver:false,winnerIds:[]});
 
 let state;
@@ -144,15 +274,17 @@ try{
   const saved=localStorage.getItem(STORAGE_KEY)||OLD_STORAGE_KEYS.map(k=>localStorage.getItem(k)).find(Boolean);
   state=saved?JSON.parse(saved):defaultState();
 }catch{state=defaultState()}
-state.history ||= []; state.log ||= []; state.gameOver ||= false; state.winnerIds ||= []; state.mode ||= "ffa"; state.bossIndex ??= 0; state.players=state.players.map(p=>({...p,wins:p.wins||0}));
+state.history ||= []; state.log ||= []; state.gameOver ||= false; state.winnerIds ||= []; state.mode ||= "ffa"; state.bossIndex ??= 0;
+state.players=state.players.map((p,i)=>({...p,wins:p.wins||0,faction:p.faction||FACTIONS[i%FACTIONS.length].id}));
+normalizeFactions();
 
-const playersEl=document.getElementById("players"),startScoreEl=document.getElementById("startScore"),modeSelect=document.getElementById("modeSelect"),
-addBtn=document.getElementById("addBtn"),undoBtn=document.getElementById("undoBtn"),wakeBtn=document.getElementById("wakeBtn"),
-logBtn=document.getElementById("logBtn"),settingsBtn=document.getElementById("settingsBtn"),newBtn=document.getElementById("newBtn"),
+const playersEl=document.getElementById("players"),startScoreEl=document.getElementById("startScore"),addBtn=document.getElementById("addBtn"),
+undoBtn=document.getElementById("undoBtn"),wakeBtn=document.getElementById("wakeBtn"),logBtn=document.getElementById("logBtn"),
+settingsBtn=document.getElementById("settingsBtn"),statusEl=document.getElementById("status"),
+ffaBtn=document.getElementById("ffaBtn"),bossBtn=document.getElementById("bossBtn"),
 wakeStatusEl=document.getElementById("wakeStatus"),logEl=document.getElementById("log"),clearLogBtn=document.getElementById("clearLogBtn"),
 scoreDialog=document.getElementById("scoreDialog"),scoreInput=document.getElementById("scoreInput"),scoreForm=document.getElementById("scoreForm"),
 settingsDialog=document.getElementById("settingsDialog"),logDialog=document.getElementById("logDialog"),
-endActions=document.getElementById("endActions"),
 continueSeriesBtn=document.getElementById("continueSeriesBtn"),endSeriesBtn=document.getElementById("endSeriesBtn");
 
 let editingPlayerId=null,wakeLock=null,wakeRequested=false;
@@ -161,9 +293,17 @@ const deltaAccumulators=new Map();
 function esc(s){return String(s).replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[m]))}
 function save(){localStorage.setItem(STORAGE_KEY,JSON.stringify(state))}
 function snapshot(){state.history.push({players:state.players.map(p=>({...p})),startScore:state.startScore,mode:state.mode,bossIndex:state.bossIndex,log:state.log.map(x=>({...x})),gameOver:state.gameOver,winnerIds:[...(state.winnerIds||[])]});if(state.history.length>100)state.history.shift()}
+function normalizeFactions(){
+  const used=new Set();
+  state.players.forEach((p,i)=>{
+    if(!FACTIONS.some(f=>f.id===p.faction)||used.has(p.faction)){
+      p.faction=FACTIONS.find(f=>!used.has(f.id))?.id||FACTIONS[i%FACTIONS.length].id;
+    }
+    used.add(p.faction);
+  });
+}
 function addLog(player,delta,from,to,type="change"){state.log.unshift({id:crypto.randomUUID(),time:Date.now(),player:player.name,delta,from,to,type});if(state.log.length>200)state.log.length=200}
 function formatTime(ts){return new Date(ts).toLocaleTimeString([], {hour:"2-digit",minute:"2-digit",second:"2-digit"})}
-
 function renderLog(){
   if(!state.log.length){logEl.innerHTML='<div class="hint">Noch keine Änderungen.</div>';return}
   logEl.innerHTML=state.log.map(e=>{
@@ -172,15 +312,21 @@ function renderLog(){
     return `<div class="log-entry"><span class="log-time">${formatTime(e.time)}</span><span>${middle}</span><span class="log-change ${cls}">${e.delta?sign+e.delta:""}</span></div>`
   }).join("")
 }
+function factionOptions(player){
+  const usedByOthers=new Set(state.players.filter(p=>p.id!==player.id).map(p=>p.faction));
+  return FACTIONS.map(f=>`<option value="${f.id}" ${f.id===player.faction?"selected":""} ${usedByOthers.has(f.id)?"disabled":""}>${f.name}</option>`).join("");
+}
+function factionClass(id){return FACTIONS.find(f=>f.id===id)?.className||""}
 
 function render(){
   startScoreEl.value=state.startScore;
-  modeSelect.value=state.mode;
   playersEl.innerHTML="";
   playersEl.className="players";
+  ffaBtn.classList.toggle("active",state.mode==="ffa");
+  bossBtn.classList.toggle("active",state.mode==="boss");
 
   let renderPlayers=[...state.players];
-  if(state.mode==="boss" && state.players.length){
+  if(state.mode==="boss"&&state.players.length){
     state.bossIndex=((state.bossIndex%state.players.length)+state.players.length)%state.players.length;
     const boss=state.players[state.bossIndex];
     renderPlayers=[boss,...state.players.filter(p=>p.id!==boss.id)];
@@ -194,19 +340,22 @@ function render(){
     if(!player){
       const empty=document.createElement("div");
       empty.className="empty-slot";
-      empty.innerHTML='<button class="btn secondary" data-action="add-slot">+ Spieler</button>';
-      playersEl.appendChild(empty); continue;
+      empty.innerHTML='<button class="small-btn" data-action="add-slot">+ Spieler</button>';
+      playersEl.appendChild(empty);continue;
     }
-    const card=document.createElement("article");
     const isWinner=(state.winnerIds||[]).includes(player.id);
     const bossPlayer=state.mode==="boss"&&state.players[state.bossIndex]?.id===player.id;
-    card.className="card"+(player.score<=0?" dead game-over-lock":"")+(isWinner?" winner-card":"")+(state.gameOver?" game-over-lock":"")+(bossPlayer?" boss-card":"");
+    const card=document.createElement("article");
+    card.className=`card ${factionClass(player.faction)}`+(player.score<=0?" dead game-over-lock":"")+(isWinner?" winner-card":"")+(state.gameOver?" game-over-lock":"")+(bossPlayer?" boss-card":"");
     card.innerHTML=`
       ${state.mode==="boss"?`<div class="role-badge">${bossPlayer?"Boss":"Team"}</div>`:""}
-      <div class="player-head">
+      <div class="card-top">
+        <select class="faction-select" data-action="faction" data-id="${player.id}">${factionOptions(player)}</select>
+        <div class="series-points" title="Serienpunkte">★ ${player.wins||0}</div>
+      </div>
+      <div class="identity">
         <input class="name" data-action="name" data-id="${player.id}" maxlength="24" value="${esc(player.name)}">
-        <button class="remove" data-action="remove" data-id="${player.id}">×</button>
-        <div class="series-wins" title="Serienpunkte">★ ${player.wins||0}</div>
+        <button class="remove" data-action="remove" data-id="${player.id}" aria-label="Spieler entfernen">×</button>
       </div>
       <div class="score-wrap">
         ${isWinner?'<div class="winner-trophy" aria-hidden="true">🏆</div>':""}
@@ -215,131 +364,118 @@ function render(){
       </div>
       <div class="controls">
         <button class="score-btn minus" data-action="change" data-id="${player.id}" data-delta="-1">−1</button>
+        <button class="score-btn plus" data-action="change" data-id="${player.id}" data-delta="1">+1</button>
         <div class="custom-change">
           <button class="apply-btn custom-minus" data-action="custom-apply" data-sign="-1" data-id="${player.id}">−</button>
           <input class="custom-input" data-action="custom-input" data-id="${player.id}" type="number" inputmode="numeric" min="1" max="9999" placeholder="Punkte">
           <button class="apply-btn custom-plus" data-action="custom-apply" data-sign="1" data-id="${player.id}">+</button>
         </div>
-        <button class="score-btn plus" data-action="change" data-id="${player.id}" data-delta="1">+1</button>
       </div>`;
-    playersEl.appendChild(card)
+    playersEl.appendChild(card);
   }
+
   undoBtn.disabled=!state.history.length;
   addBtn.disabled=state.players.length>=MAX_PLAYERS;
-  endActions.classList.toggle("show",!!state.gameOver);
-  renderLog(); updateWakeUi(); save()
+  continueSeriesBtn.classList.toggle("show",!!state.gameOver);
+  endSeriesBtn.classList.toggle("show",!!state.gameOver);
+  statusEl.textContent=state.gameOver?"Spiel beendet":state.mode==="boss"?"Boss Mode":"FFA";
+  renderLog();updateWakeUi();save();
 }
 
 function flashDelta(id,delta){
-  const prev=deltaAccumulators.get(id), total=(prev?.total||0)+delta;
+  const prev=deltaAccumulators.get(id),total=(prev?.total||0)+delta;
   if(prev?.timer)clearTimeout(prev.timer);
-  const el=document.getElementById(`delta-${id}`); if(!el)return;
-  el.className="delta-float"; void el.offsetWidth;
+  const el=document.getElementById(`delta-${id}`);if(!el)return;
+  el.className="delta-float";void el.offsetWidth;
   el.textContent=total>0?`+${total}`:`${total}`;
-  if(total>0)el.classList.add("plus"); else if(total<0)el.classList.add("minus");
+  if(total>0)el.classList.add("plus");else if(total<0)el.classList.add("minus");
   el.classList.add("show");
   const timer=setTimeout(()=>deltaAccumulators.delete(id),3000);
-  deltaAccumulators.set(id,{total,timer})
+  deltaAccumulators.set(id,{total,timer});
 }
+
+function changeScore(player,delta){
+  if(state.gameOver||player.score<=0)return;
+  const from=player.score,to=Math.max(0,from+delta),actual=to-from;if(!actual)return;
+  snapshot();player.score=to;addLog(player,actual,from,to);
+  const reachedZero=to===0;
+  render();requestAnimationFrame(()=>flashDelta(player.id,actual));
+  if(reachedZero)checkForGameOver();
+}
+
 function checkForGameOver(){
   if(state.gameOver)return;
-
   if(state.mode==="boss"){
     const boss=state.players[state.bossIndex];
     const team=state.players.filter(p=>p.id!==boss.id);
-
     if(boss.score<=0){
-      state.gameOver=true;
-      state.winnerIds=team.map(p=>p.id);
-      team.forEach(p=>p.wins=(p.wins||0)+1);
+      state.gameOver=true;state.winnerIds=team.map(p=>p.id);team.forEach(p=>p.wins=(p.wins||0)+1);
       state.log.unshift({id:crypto.randomUUID(),time:Date.now(),player:"Spiel",delta:0,from:0,to:0,type:"gameover",text:`Team gewinnt gegen ${boss.name}`});
-      render();showGameOver();return;
+      render();return;
     }
-
     if(team.every(p=>p.score<=0)){
-      state.gameOver=true;
-      state.winnerIds=[boss.id];
-      boss.wins=(boss.wins||0)+2;
+      state.gameOver=true;state.winnerIds=[boss.id];boss.wins=(boss.wins||0)+2;
       state.log.unshift({id:crypto.randomUUID(),time:Date.now(),player:"Spiel",delta:0,from:0,to:0,type:"gameover",text:`${boss.name} gewinnt als Boss (+2)`});
-      render();showGameOver();return;
+      render();return;
     }
-
     render();return;
   }
-
   const active=state.players.filter(p=>p.score>0);
   if(active.length>1){render();return}
-
   if(active.length===1){
     const winner=active[0];
-    state.gameOver=true;
-    state.winnerIds=[winner.id];
-    winner.wins=(winner.wins||0)+1;
+    state.gameOver=true;state.winnerIds=[winner.id];winner.wins=(winner.wins||0)+1;
     state.log.unshift({id:crypto.randomUUID(),time:Date.now(),player:"Spiel",delta:0,from:0,to:0,type:"gameover",text:`${winner.name} gewinnt`});
-    render();showGameOver();return;
+    render();return;
   }
-
-  state.gameOver=true;
-  state.winnerIds=[];
+  state.gameOver=true;state.winnerIds=[];
   state.log.unshift({id:crypto.randomUUID(),time:Date.now(),player:"Spiel",delta:0,from:0,to:0,type:"gameover",text:"Partie endet ohne Sieger"});
-  render();showGameOver();
-}
-
-function showGameOver(){
-  if(!state.gameOver)return;
-  endActions.classList.add("show");
+  render();
 }
 
 function startNextGame(){
-  state.gameOver=false;
-  state.winnerIds=[];
+  state.gameOver=false;state.winnerIds=[];
   if(state.mode==="boss"&&state.players.length)state.bossIndex=(state.bossIndex+1)%state.players.length;
   state.players=state.players.map(p=>({...p,score:state.startScore}));
   state.history=[];
   state.log.unshift({id:crypto.randomUUID(),time:Date.now(),player:"Serie",delta:0,from:0,to:0,type:"newgame"});
-  save();
   render();
 }
-
 function endSeries(){
-  state.gameOver=false;
-  state.winnerIds=[];
-  state.bossIndex=0;
+  state.gameOver=false;state.winnerIds=[];state.bossIndex=0;
   state.players=state.players.map(p=>({...p,score:state.startScore,wins:0}));
-  state.history=[];
-  state.log=[];
-  save();
-  render();
-}
-
-function changeScore(player,delta){
-  if(state.gameOver)return;
-  const from=player.score,to=Math.max(0,from+delta),actual=to-from;if(!actual)return;
-  snapshot();player.score=to;addLog(player,actual,from,to);
-  const reachedZero=to===0;
-  render();
-  requestAnimationFrame(()=>flashDelta(player.id,actual));
-  if(reachedZero)checkForGameOver();
+  state.history=[];state.log=[];render();
 }
 function addPlayer(){
   if(state.players.length>=MAX_PLAYERS)return;
-  snapshot();const n=state.players.length+1;
-  state.players.push({id:crypto.randomUUID(),name:`Spieler ${n}`,score:state.startScore,wins:0});render()
+  snapshot();
+  const n=state.players.length+1;
+  const used=new Set(state.players.map(p=>p.faction));
+  const faction=FACTIONS.find(f=>!used.has(f.id))?.id||FACTIONS[0].id;
+  state.players.push({id:crypto.randomUUID(),name:`Spieler ${n}`,score:state.startScore,wins:0,faction});
+  render();
+}
+function setMode(next){
+  if(next===state.mode)return;
+  state.mode=next;state.bossIndex=0;state.gameOver=false;state.winnerIds=[];
+  state.players=state.players.map(p=>({...p,score:state.startScore,wins:0}));
+  state.history=[];state.log=[];render();
 }
 
 playersEl.addEventListener("click",e=>{
   const btn=e.target.closest("[data-action]");if(!btn)return;
   if(btn.dataset.action==="add-slot"){addPlayer();return}
   const id=btn.dataset.id,player=state.players.find(p=>p.id===id);if(!player)return;
-  if((state.gameOver || player.score<=0) && !["name"].includes(btn.dataset.action))return;
+  if((state.gameOver||player.score<=0)&&!["name","faction"].includes(btn.dataset.action))return;
   if(btn.dataset.action==="change")changeScore(player,Number(btn.dataset.delta));
   if(btn.dataset.action==="custom-apply"){
     const input=playersEl.querySelector(`[data-action="custom-input"][data-id="${id}"]`);
     const amount=Math.abs(Number(input?.value));if(!Number.isFinite(amount)||amount===0)return;
-    changeScore(player,amount*(Number(btn.dataset.sign)||1));input.value="";input.blur()
+    changeScore(player,amount*(Number(btn.dataset.sign)||1));input.value="";input.blur();
   }
   if(btn.dataset.action==="remove"){
-    if(state.players.length<=MIN_PLAYERS)return;snapshot();state.players=state.players.filter(p=>p.id!==id);render()
+    if(state.players.length<=MIN_PLAYERS)return;snapshot();state.players=state.players.filter(p=>p.id!==id);normalizeFactions();
+    if(state.bossIndex>=state.players.length)state.bossIndex=0;render();
   }
   if(btn.dataset.action==="edit"){editingPlayerId=id;scoreInput.value=player.score;scoreDialog.showModal();setTimeout(()=>scoreInput.select(),50)}
 });
@@ -347,46 +483,41 @@ playersEl.addEventListener("input",e=>{
   if(!e.target.matches('[data-action="name"]'))return;
   const p=state.players.find(p=>p.id===e.target.dataset.id);if(p){p.name=e.target.value;save()}
 });
+playersEl.addEventListener("change",e=>{
+  if(!e.target.matches('[data-action="faction"]'))return;
+  const p=state.players.find(p=>p.id===e.target.dataset.id);if(!p)return;
+  const chosen=e.target.value;
+  const taken=state.players.some(other=>other.id!==p.id&&other.faction===chosen);
+  if(taken){render();return}
+  p.faction=chosen;render();
+});
 
 scoreForm.addEventListener("submit",()=>{
   if(scoreDialog.returnValue==="cancel")return;
-  const p=state.players.find(p=>p.id===editingPlayerId);if(!p||state.gameOver)return;
+  const p=state.players.find(p=>p.id===editingPlayerId);if(!p||state.gameOver||p.score<=0)return;
   const from=p.score,to=Math.max(0,Math.min(9999,Number(scoreInput.value)||0));
   if(from!==to){
     snapshot();p.score=to;addLog(p,to-from,from,to,"set");
-    const reachedZero=to===0;
-    render();
-    requestAnimationFrame(()=>flashDelta(p.id,to-from));
+    const reachedZero=to===0;render();requestAnimationFrame(()=>flashDelta(p.id,to-from));
     if(reachedZero)checkForGameOver();
   }
-  editingPlayerId=null
+  editingPlayerId=null;
 });
 
-undoBtn.addEventListener("click",()=>{const prev=state.history.pop();if(!prev)return;state.players=prev.players;state.startScore=prev.startScore;state.mode=prev.mode||"ffa";state.bossIndex=prev.bossIndex||0;state.log=prev.log;state.gameOver=prev.gameOver;state.winnerIds=prev.winnerIds||[];render();if(state.gameOver)showGameOver()});
-newBtn.addEventListener("click",()=>{if(!confirm(`Aktuelle Partie zurücksetzen? Die Serie bleibt erhalten.`))return;snapshot();state.gameOver=false;state.winnerIds=[];state.players=state.players.map((p,i)=>({...p,name:p.name||`Spieler ${i+1}`,score:state.startScore}));state.log=[];render()});
+undoBtn.addEventListener("click",()=>{const prev=state.history.pop();if(!prev)return;state.players=prev.players;state.startScore=prev.startScore;state.mode=prev.mode||"ffa";state.bossIndex=prev.bossIndex||0;state.log=prev.log;state.gameOver=prev.gameOver;state.winnerIds=prev.winnerIds||[];normalizeFactions();render()});
 addBtn.addEventListener("click",addPlayer);
 startScoreEl.addEventListener("change",()=>{state.startScore=Math.max(1,Math.min(999,Number(startScoreEl.value)||50));save();render()});
-modeSelect.addEventListener("change",()=>{
-  const next=modeSelect.value==="boss"?"boss":"ffa";
-  if(next===state.mode)return;
-  state.mode=next;
-  state.bossIndex=0;
-  state.gameOver=false;
-  state.winnerIds=[];
-  state.players=state.players.map(p=>({...p,score:state.startScore,wins:0}));
-  state.history=[];
-  state.log=[];
-  save();
-  render();
-});
+ffaBtn.addEventListener("click",()=>setMode("ffa"));
+bossBtn.addEventListener("click",()=>setMode("boss"));
+continueSeriesBtn.addEventListener("click",startNextGame);
+endSeriesBtn.addEventListener("click",endSeries);
 
 logBtn.addEventListener("click",()=>{renderLog();logDialog.showModal()});
 document.getElementById("closeLogBtn").addEventListener("click",()=>logDialog.close());
-clearLogBtn.addEventListener("click",()=>{if(!state.log.length)return;snapshot();state.log=[];renderLog();save()});
+clearLogBtn.addEventListener("click",()=>{state.log=[];renderLog();save()});
 settingsBtn.addEventListener("click",()=>settingsDialog.showModal());
 document.getElementById("closeSettingsBtn").addEventListener("click",()=>settingsDialog.close());
-continueSeriesBtn.addEventListener("click",startNextGame);
-endSeriesBtn.addEventListener("click",endSeries);
+document.getElementById("menuBtn").addEventListener("click",()=>settingsDialog.showModal());
 
 async function requestWakeLock(){
   wakeRequested=true;
@@ -394,21 +525,17 @@ async function requestWakeLock(){
   try{
     wakeLock=await navigator.wakeLock.request("screen");
     wakeStatusEl.textContent="Bildschirm bleibt an.";
-    wakeLock.addEventListener("release",()=>{wakeLock=null;updateWakeUi()})
+    wakeLock.addEventListener("release",()=>{wakeLock=null;updateWakeUi()});
   }catch{wakeStatusEl.textContent="Wake Lock konnte nicht aktiviert werden."}
-  updateWakeUi()
+  updateWakeUi();
 }
-async function releaseWakeLock(){
-  wakeRequested=false;if(wakeLock){try{await wakeLock.release()}catch{}wakeLock=null}
-  wakeStatusEl.textContent="Wake Lock aus.";updateWakeUi()
-}
+async function releaseWakeLock(){wakeRequested=false;if(wakeLock){try{await wakeLock.release()}catch{}wakeLock=null}wakeStatusEl.textContent="Wake Lock aus.";updateWakeUi()}
 function updateWakeUi(){wakeBtn.textContent=wakeLock?"☀✓":"☀"}
 wakeBtn.addEventListener("click",()=>{if(wakeLock||wakeRequested)releaseWakeLock();else requestWakeLock()});
 document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible"&&wakeRequested&&!wakeLock)requestWakeLock()});
 
 if("serviceWorker" in navigator)window.addEventListener("load",()=>navigator.serviceWorker.register("./sw.js"));
 render();
-if(state.gameOver)setTimeout(showGameOver,50);
 </script>
 </body>
 </html>
