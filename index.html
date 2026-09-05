@@ -6,7 +6,7 @@
   <meta name="theme-color" content="#06111f" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-  <title>Star Realm Counter v.0.17</title>
+  <title>Star Realm Counter v.0.18</title>
   <link rel="manifest" href="manifest.webmanifest" />
   <style>
     :root{
@@ -263,7 +263,7 @@
   <header class="topbar">
     <button id="menuBtn" class="icon-btn" aria-label="Menü">☰</button>
     <div class="title-wrap">
-      <h1 class="title">Star Realm Counter v.0.17</h1>
+      <h1 class="title">Star Realm Counter v.0.18</h1>
       <div class="subtitle">Trade · Attack · Dominate</div>
     </div>
     <button id="settingsBtn" class="icon-btn" aria-label="Einstellungen">⚙</button>
@@ -272,6 +272,7 @@
   <div class="mode-tabs">
     <button id="ffaBtn" class="mode-btn">⚔ FFA</button>
     <button id="bossBtn" class="mode-btn">☠ Boss</button>
+    <button id="teamBtn" class="mode-btn">⛓ Team</button>
   </div>
 
   <section id="players" class="players"></section>
@@ -318,7 +319,7 @@
 </dialog>
 
 <script>
-const STORAGE_KEY="realm-counter-state-v17";
+const STORAGE_KEY="realm-counter-state-v18";
 const OLD_STORAGE_KEYS=["realm-counter-state-v13","realm-counter-state-v12","realm-counter-state-v11","realm-counter-state-v10","realm-counter-state-v9","realm-counter-state-v8","realm-counter-state-v7","realm-counter-state-v6","realm-counter-state-v5","realm-counter-state-v4","realm-counter-state-v3","realm-counter-state-v2","realm-counter-state-v1"];
 const MAX_PLAYERS=4,MIN_PLAYERS=2;
 const FACTIONS=[
@@ -345,7 +346,7 @@ normalizeFactions();
 const playersEl=document.getElementById("players"),startScoreEl=document.getElementById("startScore"),addBtn=document.getElementById("addBtn"),
 undoBtn=document.getElementById("undoBtn"),wakeBtn=document.getElementById("wakeBtn"),logBtn=document.getElementById("logBtn"),
 settingsBtn=document.getElementById("settingsBtn"),statusEl=document.getElementById("status"),
-ffaBtn=document.getElementById("ffaBtn"),bossBtn=document.getElementById("bossBtn"),
+ffaBtn=document.getElementById("ffaBtn"),bossBtn=document.getElementById("bossBtn"),teamBtn=document.getElementById("teamBtn"),
 wakeStatusEl=document.getElementById("wakeStatus"),logEl=document.getElementById("log"),clearLogBtn=document.getElementById("clearLogBtn"),
 scoreDialog=document.getElementById("scoreDialog"),scoreInput=document.getElementById("scoreInput"),scoreForm=document.getElementById("scoreForm"),
 settingsDialog=document.getElementById("settingsDialog"),logDialog=document.getElementById("logDialog"),
@@ -356,7 +357,7 @@ const deltaAccumulators=new Map();
 
 function esc(s){return String(s).replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[m]))}
 function save(){localStorage.setItem(STORAGE_KEY,JSON.stringify(state))}
-function snapshot(){state.history.push({players:state.players.map(p=>({...p})),startScore:state.startScore,mode:state.mode,bossIndex:state.bossIndex,log:state.log.map(x=>({...x})),gameOver:state.gameOver,winnerIds:[...(state.winnerIds||[])]});if(state.history.length>100)state.history.shift()}
+function snapshot(){state.history.push({players:state.players.map(p=>({...p})),startScore:state.startScore,mode:state.mode,bossIndex:state.bossIndex,log:state.log.map(x=>({...x})),gameOver:state.gameOver,winnerIds:[...(state.winnerIds||[])],teamScores:[...(state.teamScores||[75,75])]});if(state.history.length>100)state.history.shift()}
 function normalizeFactions(){
   const used=new Set();
   state.players.forEach((p,i)=>{
@@ -399,6 +400,9 @@ function bossAuthority(){
   const raiders=Math.max(0,state.players.length-1);
   return raiders>=3?70:50;
 }
+function handFan(count){
+  return `<span class="card-fan" aria-hidden="true">${Array.from({length:count},()=>'<span class="mini-card"></span>').join("")}</span><span class="hand-count">${count}</span>`;
+}
 function bossHandSize(){
   const raiders=Math.max(0,state.players.length-1);
   return raiders>=4?8:7;
@@ -427,7 +431,7 @@ function changeTeamScore(team,delta){
   if(state.gameOver)return;
   pushHistory();
   state.teamScores[team]=Math.max(0,state.teamScores[team]+delta);
-  addLog(`${team===0?"Team A":"Team B"} ${delta>0?"+":""}${delta} → ${state.teamScores[team]}`);
+  addLog({name:team===0?"Team A":"Team B"},delta,state.teamScores[team]-delta,state.teamScores[team]);
   if(state.teamScores[team]===0){
     const winningTeam=team===0?1:0;
     const winners=state.players.filter(p=>teamIndexForPlayer(p.id)===winningTeam);
@@ -449,7 +453,7 @@ function renderTeam(){
       <div class="team-members">${members.map(player=>{const f=factionData(player.faction);return `
         <div class="team-member">
           <button class="faction-logo-btn" data-action="faction-menu" data-id="${player.id}" title="${f.name}" aria-label="Fraktion wählen: ${f.name}"><img src="${f.icon}" alt=""></button>
-          <input class="name" data-action="name" data-id="${player.id}" value="${escapeHtml(player.name)}" aria-label="Spielername">
+          <input class="name" data-action="name" data-id="${player.id}" value="${esc(player.name)}" aria-label="Spielername">
           <div class="series-points">★ ${player.wins||0}</div>
         </div>`}).join("")}</div>
       <div class="team-controls">
@@ -464,7 +468,9 @@ function renderTeam(){
 function render(){
   if(state.mode==="team"){
     renderTeam();
-    modeTabs.forEach(b=>b.classList.toggle("active",b.dataset.mode===state.mode));
+    ffaBtn.classList.toggle("active",false);
+    bossBtn.classList.toggle("active",false);
+    teamBtn.classList.toggle("active",true);
     undoBtn.disabled=!state.history.length;
     continueSeriesBtn.hidden=!state.gameOver;endSeriesBtn.hidden=!state.gameOver;
     statusEl.textContent=state.gameOver?"Spiel beendet":"Team · 75 Authority";
@@ -475,6 +481,7 @@ function render(){
   playersEl.className="players";
   ffaBtn.classList.toggle("active",state.mode==="ffa");
   bossBtn.classList.toggle("active",state.mode==="boss");
+  teamBtn.classList.toggle("active",false);
 
   let renderPlayers=[...state.players];
   if(state.mode==="boss"&&state.players.length){
@@ -501,7 +508,6 @@ function render(){
     const faction=factionData(player.faction);
     card.innerHTML=`
       <div class="faction-art" style="background-image:url('${faction.art}')"></div>
-      ${state.mode==="boss"?`<div class="role-badge">${bossPlayer?"Boss":"Team"}</div><div class="hand-badge" title="Normale Handgröße"><span class="hand-icon">▤</span>${bossPlayer?bossHandSize():5}</div>`:""}
       <div class="identity">
         <input class="name" data-action="name" data-id="${player.id}" maxlength="24" value="${esc(player.name)}">
         <button class="remove" data-action="remove" data-id="${player.id}" aria-label="Spieler entfernen">×</button>
@@ -512,6 +518,10 @@ function render(){
         </button>
         <div class="series-points" title="Serienpunkte">★ ${player.wins||0}</div>
       </div>
+      ${state.mode==="boss"?`<div class="card-meta-row">
+        <div class="role-badge">${bossPlayer?"Boss":"Team"}</div>
+        <div class="hand-badge" title="Normale Handgröße">${handFan(bossPlayer?bossHandSize():5)}</div>
+      </div>`:""}
       <div class="score-wrap">
         ${isWinner?'<div class="winner-trophy" aria-hidden="true">🏆</div>':""}
         <div id="delta-${player.id}" class="delta-float"></div>
@@ -589,6 +599,9 @@ function checkForGameOver(){
 }
 
 function startNextGame(){
+  if(state.mode==="team"){
+    state.teamScores=[75,75];state.gameOver=false;state.winnerIds=[];render();return;
+  }
   if(state.mode==="team"){state.teamScores=[75,75];state.gameOver=false;state.winnerIds=[];render();return;}
   state.gameOver=false;state.winnerIds=[];
   if(state.mode==="boss"&&state.players.length)state.bossIndex=(state.bossIndex+1)%state.players.length;
@@ -598,6 +611,9 @@ function startNextGame(){
   render();
 }
 function endSeries(){
+  if(state.mode==="team"){
+    state.teamScores=[75,75];state.players.forEach(p=>p.wins=0);state.gameOver=false;state.winnerIds=[];render();return;
+  }
   if(state.mode==="team"){state.teamScores=[75,75];state.players.forEach(p=>p.wins=0);state.gameOver=false;state.winnerIds=[];render();return;}
   state.gameOver=false;state.winnerIds=[];state.bossIndex=0;
   state.players=state.players.map(p=>({...p,wins:0}));resetScoresForMode();
@@ -619,7 +635,14 @@ function addPlayer(){
 function setMode(next){
   if(next===state.mode)return;
   state.mode=next;state.bossIndex=0;state.gameOver=false;state.winnerIds=[];
-  state.players=state.players.map(p=>({...p,wins:0}));resetScoresForMode();
+  state.players=state.players.map(p=>({...p,wins:0}));
+  if(next==="team"){
+    ensureTeamMode();
+    state.teamScores=[75,75];
+    state.players.forEach(p=>p.score=50);
+  }else{
+    resetScoresForMode();
+  }
   state.history=[];state.log=[];render();
 }
 
@@ -681,11 +704,12 @@ scoreForm.addEventListener("submit",()=>{
   editingPlayerId=null;
 });
 
-undoBtn.addEventListener("click",()=>{const prev=state.history.pop();if(!prev)return;state.players=prev.players;state.startScore=prev.startScore;state.mode=prev.mode||"ffa";state.bossIndex=prev.bossIndex||0;state.log=prev.log;state.gameOver=prev.gameOver;state.winnerIds=prev.winnerIds||[];normalizeFactions();render()});
+undoBtn.addEventListener("click",()=>{const prev=state.history.pop();if(!prev)return;state.players=prev.players;state.startScore=prev.startScore;state.mode=prev.mode||"ffa";state.bossIndex=prev.bossIndex||0;state.log=prev.log;state.gameOver=prev.gameOver;state.winnerIds=prev.winnerIds||[];state.teamScores=prev.teamScores||[75,75];normalizeFactions();render()});
 addBtn.addEventListener("click",addPlayer);
 startScoreEl.addEventListener("change",()=>{state.startScore=Math.max(1,Math.min(999,Number(startScoreEl.value)||50));save();render()});
 ffaBtn.addEventListener("click",()=>setMode("ffa"));
 bossBtn.addEventListener("click",()=>setMode("boss"));
+teamBtn.addEventListener("click",()=>setMode("team"));
 continueSeriesBtn.addEventListener("click",startNextGame);
 endSeriesBtn.addEventListener("click",endSeries);
 
@@ -716,3 +740,38 @@ render();
 </script>
 </body>
 </html>
+<style id="v018-layout-fixes">
+.mode-tabs{grid-template-columns:repeat(3,minmax(0,1fr))!important}
+.identity{
+  display:grid!important;grid-template-columns:minmax(0,1fr) 30px!important;
+  gap:5px!important;align-items:center!important;padding:4px 5px 2px!important
+}
+.identity .remove{
+  position:static!important;inset:auto!important;margin:0!important;
+  width:30px!important;height:30px!important;min-height:30px!important;padding:0!important;
+  border-radius:50%!important
+}
+.card-meta-row{
+  position:relative;z-index:3;display:flex;align-items:center;justify-content:space-between;
+  gap:6px;padding:0 6px 4px;min-height:26px
+}
+.card-meta-row .role-badge,.card-meta-row .hand-badge{
+  position:static!important;inset:auto!important;margin:0!important;
+  display:inline-flex!important;align-items:center;gap:4px;min-height:22px;
+  padding:2px 6px!important;border-radius:999px
+}
+.card-fan{position:relative;width:44px;height:20px;display:inline-block;flex:0 0 44px}
+.card-fan .mini-card{
+  position:absolute;left:16px;bottom:1px;width:11px;height:16px;border-radius:2px;
+  border:1px solid rgba(225,239,248,.86);background:linear-gradient(180deg,#315a78,#0b1b29);
+  transform-origin:50% 125%
+}
+.card-fan .mini-card:nth-child(1){transform:translateX(-13px) rotate(-30deg)}
+.card-fan .mini-card:nth-child(2){transform:translateX(-9px) rotate(-20deg)}
+.card-fan .mini-card:nth-child(3){transform:translateX(-5px) rotate(-10deg)}
+.card-fan .mini-card:nth-child(4){transform:translateX(0) rotate(0)}
+.card-fan .mini-card:nth-child(5){transform:translateX(5px) rotate(10deg)}
+.card-fan .mini-card:nth-child(6){transform:translateX(9px) rotate(20deg)}
+.card-fan .mini-card:nth-child(7){transform:translateX(13px) rotate(30deg)}
+.hand-count{font-size:9px;font-weight:950;min-width:10px;text-align:right}
+</style>
