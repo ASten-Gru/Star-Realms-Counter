@@ -1,23 +1,36 @@
-# Star Realm Counter v.0.12
+# Star Realm Counter v.0.13
 
-Neues Design:
-- Sci-Fi/Star-Realms-inspirierte Oberfläche
-- FFA/Boss-Umschalter prominent oben
-- Vier Fraktionen auswählbar:
-  - Star Empire
-  - Machine Cult
-  - Trade Federation
-  - Blob
-- Jede Fraktion kann innerhalb einer Partie nur einmal vergeben werden
-- Fraktionsabhängige Kartenfarben und visuelle Identität
-- Boss bleibt oben, Gegner darunter
-- Serienpunkte als Stern-Anzeige
-- Spielende-Aktionen direkt in der Oberfläche
+## Neu in v0.13
+- Echte Grafik-Assets statt reinem CSS-Look
+- Allgemeiner vertikaler Sci-Fi-Hintergrund
+- Eigenes Artwork pro Fraktion
+- Eigenes Symbol pro Fraktion
+- Fraktionsauswahl aktualisiert Artwork, Symbol und Akzentfarbe automatisch
+- Jede Fraktion kann weiterhin nur einmal gleichzeitig gewählt werden
+- Assets sind für die PWA optimiert und werden offline gecacht
 
-Bestehende Logik:
-- FFA: letzter aktiver Spieler gewinnt 1 Serienpunkt
-- Boss-Sieg: 2 Serienpunkte
-- Team-Sieg: jeder Nicht-Boss-Spieler +1 Serienpunkt
-- Boss rotiert bei neuer Partie
+## Fraktionen
+- Trade Federation: blau
+- Machine Cult: rot
+- Star Empire: gelb/gold
+- Blob: grün
+
+## Spielmodi
+- FFA: letzter aktiver Spieler erhält 1 Serienpunkt
+- Boss Mode: Boss-Sieg = 2 Serienpunkte
+- Team-Sieg = jeder Nicht-Boss-Spieler +1 Serienpunkt
+- Boss rotiert beim Start der nächsten Partie
+
+## Weitere Funktionen
+- 2–4 Spieler
 - Eliminierung bei 0
-- 2–4 Spieler, Undo, Log, Wake Lock, Offline-PWA
+- Fraktionsauswahl nur einmal je Fraktion
+- Undo
+- Log
+- Wake Lock
+- Offline-PWA
+
+
+## Handy-freundliche Repository-Struktur
+Alle Dateien liegen direkt im Hauptverzeichnis des GitHub-Repositories.
+Ein `assets`-Ordner ist nicht erforderlich.

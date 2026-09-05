@@ -6,7 +6,7 @@
   <meta name="theme-color" content="#06111f" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-  <title>Star Realm Counter v.0.12</title>
+  <title>Star Realm Counter v.0.13</title>
   <link rel="manifest" href="manifest.webmanifest" />
   <style>
     :root{
@@ -29,13 +29,8 @@
     body{
       min-height:100dvh;
       background:
-        radial-gradient(circle at 72% 10%,rgba(42,111,178,.22),transparent 24%),
-        radial-gradient(circle at 18% 82%,rgba(9,71,126,.18),transparent 26%),
-        radial-gradient(circle at 20% 20%,rgba(255,255,255,.09) 0 1px,transparent 1.5px),
-        radial-gradient(circle at 70% 30%,rgba(255,255,255,.08) 0 1px,transparent 1.4px),
-        radial-gradient(circle at 40% 70%,rgba(255,255,255,.08) 0 1px,transparent 1.4px),
-        linear-gradient(180deg,#03101d,#020811 60%,#03111e);
-      background-size:auto,auto,130px 130px,180px 180px,220px 220px,auto;
+        linear-gradient(180deg,rgba(1,7,14,.56),rgba(1,7,14,.78)),
+        url("./background.webp") center center / cover no-repeat fixed;
       padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
     }
     button,input,select{font:inherit}
@@ -121,6 +116,35 @@
     .game-over-lock .controls,.game-over-lock .remove,.game-over-lock .faction-select{pointer-events:none;opacity:.48}
 
     .card-top{position:relative;z-index:2;display:grid;grid-template-columns:minmax(0,1fr) auto;gap:4px;padding:5px}
+
+    .faction-art{
+      position:absolute;
+      inset:0;
+      z-index:0;
+      background-position:center;
+      background-size:cover;
+      opacity:.62;
+      filter:saturate(1.05) contrast(1.03);
+    }
+    .faction-art::after{
+      content:"";
+      position:absolute;inset:0;
+      background:
+        linear-gradient(180deg,rgba(1,7,13,.10),rgba(1,7,13,.48) 42%,rgba(1,7,13,.86) 78%,rgba(1,7,13,.96)),
+        linear-gradient(90deg,color-mix(in srgb,var(--accent) 11%,transparent),transparent 45%);
+    }
+    .faction-icon{
+      width:28px;height:28px;border-radius:50%;object-fit:cover;display:block;
+      border:1px solid color-mix(in srgb,var(--accent) 78%,#fff 5%);
+      box-shadow:0 0 10px color-mix(in srgb,var(--accent) 38%,transparent);
+      background:#02070c;
+    }
+    .faction-picker{
+      min-width:0;display:grid;grid-template-columns:30px minmax(0,1fr);gap:5px;align-items:center;
+    }
+    .card-top{grid-template-columns:minmax(0,1fr) auto}
+    .identity,.score-wrap,.controls,.card-top,.role-badge{position:relative;z-index:2}
+
     .faction-select{
       min-width:0;width:100%;border:1px solid color-mix(in srgb,var(--accent) 65%,#233a4a);
       border-radius:8px;background:#061522;color:#eef8ff;font-weight:850;font-size:12px;padding:6px 28px 6px 8px;
@@ -202,7 +226,7 @@
   <header class="topbar">
     <button id="menuBtn" class="icon-btn" aria-label="Menü">☰</button>
     <div class="title-wrap">
-      <h1 class="title">Star Realm Counter v.0.12</h1>
+      <h1 class="title">Star Realm Counter v.0.13</h1>
       <div class="subtitle">Trade · Attack · Dominate</div>
     </div>
     <button id="settingsBtn" class="icon-btn" aria-label="Einstellungen">⚙</button>
@@ -254,14 +278,14 @@
 </dialog>
 
 <script>
-const STORAGE_KEY="realm-counter-state-v12";
-const OLD_STORAGE_KEYS=["realm-counter-state-v11","realm-counter-state-v10","realm-counter-state-v9","realm-counter-state-v8","realm-counter-state-v7","realm-counter-state-v6","realm-counter-state-v5","realm-counter-state-v4","realm-counter-state-v3","realm-counter-state-v2","realm-counter-state-v1"];
+const STORAGE_KEY="realm-counter-state-v13";
+const OLD_STORAGE_KEYS=["realm-counter-state-v12","realm-counter-state-v11","realm-counter-state-v10","realm-counter-state-v9","realm-counter-state-v8","realm-counter-state-v7","realm-counter-state-v6","realm-counter-state-v5","realm-counter-state-v4","realm-counter-state-v3","realm-counter-state-v2","realm-counter-state-v1"];
 const MAX_PLAYERS=4,MIN_PLAYERS=2;
 const FACTIONS=[
-  {id:"empire",name:"Star Empire",className:"faction-empire"},
-  {id:"machine",name:"Machine Cult",className:"faction-machine"},
-  {id:"trade",name:"Trade Federation",className:"faction-trade"},
-  {id:"blob",name:"Blob",className:"faction-blob"}
+  {id:"empire",name:"Star Empire",className:"faction-empire",art:"./empire_art.webp",icon:"./empire_icon.webp"},
+  {id:"machine",name:"Machine Cult",className:"faction-machine",art:"./machine_art.webp",icon:"./machine_icon.webp"},
+  {id:"trade",name:"Trade Federation",className:"faction-trade",art:"./trade_art.webp",icon:"./trade_icon.webp"},
+  {id:"blob",name:"Blob",className:"faction-blob",art:"./blob_art.webp",icon:"./blob_icon.webp"}
 ];
 
 const defaultState=()=>({startScore:50,mode:"ffa",bossIndex:0,players:[
@@ -317,6 +341,7 @@ function factionOptions(player){
   return FACTIONS.map(f=>`<option value="${f.id}" ${f.id===player.faction?"selected":""} ${usedByOthers.has(f.id)?"disabled":""}>${f.name}</option>`).join("");
 }
 function factionClass(id){return FACTIONS.find(f=>f.id===id)?.className||""}
+function factionData(id){return FACTIONS.find(f=>f.id===id)||FACTIONS[0]}
 
 function render(){
   startScoreEl.value=state.startScore;
@@ -347,10 +372,15 @@ function render(){
     const bossPlayer=state.mode==="boss"&&state.players[state.bossIndex]?.id===player.id;
     const card=document.createElement("article");
     card.className=`card ${factionClass(player.faction)}`+(player.score<=0?" dead game-over-lock":"")+(isWinner?" winner-card":"")+(state.gameOver?" game-over-lock":"")+(bossPlayer?" boss-card":"");
+    const faction=factionData(player.faction);
     card.innerHTML=`
+      <div class="faction-art" style="background-image:url('${faction.art}')"></div>
       ${state.mode==="boss"?`<div class="role-badge">${bossPlayer?"Boss":"Team"}</div>`:""}
       <div class="card-top">
-        <select class="faction-select" data-action="faction" data-id="${player.id}">${factionOptions(player)}</select>
+        <div class="faction-picker">
+          <img class="faction-icon" src="${faction.icon}" alt="" aria-hidden="true">
+          <select class="faction-select" data-action="faction" data-id="${player.id}">${factionOptions(player)}</select>
+        </div>
         <div class="series-points" title="Serienpunkte">★ ${player.wins||0}</div>
       </div>
       <div class="identity">
