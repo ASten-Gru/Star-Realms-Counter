@@ -6,7 +6,7 @@
   <meta name="theme-color" content="#06111f" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-  <title>Star Realm Counter v.0.18</title>
+  <title>Star Realm Counter v.0.19</title>
   <link rel="manifest" href="manifest.webmanifest" />
   <style>
     :root{
@@ -263,7 +263,7 @@
   <header class="topbar">
     <button id="menuBtn" class="icon-btn" aria-label="Menü">☰</button>
     <div class="title-wrap">
-      <h1 class="title">Star Realm Counter v.0.18</h1>
+      <h1 class="title">Star Realm Counter v.0.19</h1>
       <div class="subtitle">Trade · Attack · Dominate</div>
     </div>
     <button id="settingsBtn" class="icon-btn" aria-label="Einstellungen">⚙</button>
@@ -319,7 +319,7 @@
 </dialog>
 
 <script>
-const STORAGE_KEY="realm-counter-state-v18";
+const STORAGE_KEY="realm-counter-state-v19";
 const OLD_STORAGE_KEYS=["realm-counter-state-v13","realm-counter-state-v12","realm-counter-state-v11","realm-counter-state-v10","realm-counter-state-v9","realm-counter-state-v8","realm-counter-state-v7","realm-counter-state-v6","realm-counter-state-v5","realm-counter-state-v4","realm-counter-state-v3","realm-counter-state-v2","realm-counter-state-v1"];
 const MAX_PLAYERS=4,MIN_PLAYERS=2;
 const FACTIONS=[
@@ -401,7 +401,7 @@ function bossAuthority(){
   return raiders>=3?70:50;
 }
 function handFan(count){
-  return `<span class="card-fan" aria-hidden="true">${Array.from({length:count},()=>'<span class="mini-card"></span>').join("")}</span><span class="hand-count">${count}</span>`;
+  return `<span class="card-fan" aria-hidden="true"><span class="mini-card"></span><span class="mini-card"></span><span class="mini-card"></span></span><span class="hand-count">${count}</span>`;
 }
 function bossHandSize(){
   const raiders=Math.max(0,state.players.length-1);
@@ -446,16 +446,35 @@ function renderTeam(){
   playersEl.innerHTML="";
   [0,1].forEach(team=>{
     const members=state.players.slice(team*2,team*2+2);
-    const el=document.createElement("section");el.className="team-card";
+    const el=document.createElement("section");
+    el.className="team-card";
     el.innerHTML=`
       <div class="team-title">${team===0?"Team A":"Team B"}</div>
-      <div class="team-score">${state.teamScores[team]}</div>
-      <div class="team-members">${members.map(player=>{const f=factionData(player.faction);return `
-        <div class="team-member">
-          <button class="faction-logo-btn" data-action="faction-menu" data-id="${player.id}" title="${f.name}" aria-label="Fraktion wählen: ${f.name}"><img src="${f.icon}" alt=""></button>
-          <input class="name" data-action="name" data-id="${player.id}" value="${esc(player.name)}" aria-label="Spielername">
-          <div class="series-points">★ ${player.wins||0}</div>
-        </div>`}).join("")}</div>
+
+      <div class="team-player-split">
+        ${members.map((player,idx)=>{
+          const f=factionData(player.faction);
+          return `
+            <div class="team-player-half ${idx===0?"left":"right"}">
+              <div class="team-faction-art" style="background-image:url('${f.art}')"></div>
+              <div class="team-half-overlay"></div>
+              <div class="team-player-top">
+                <button class="faction-logo-btn" data-action="faction-menu" data-id="${player.id}" title="${f.name}" aria-label="Fraktion wählen: ${f.name}">
+                  <img src="${f.icon}" alt="">
+                </button>
+                <div class="series-points" title="Serienpunkte">★ ${player.wins||0}</div>
+              </div>
+              <div class="team-player-name-row">
+                <input class="name" data-action="name" data-id="${player.id}" maxlength="24" value="${esc(player.name)}" aria-label="Spielername">
+              </div>
+            </div>`;
+        }).join("")}
+
+        <div class="team-score-center">
+          <div class="team-score">${state.teamScores[team]}</div>
+        </div>
+      </div>
+
       <div class="team-controls">
         <button data-action="team-minus" data-team="${team}" ${state.gameOver?"disabled":""}>−</button>
         <input class="custom" data-team-input="${team}" inputmode="numeric" pattern="[0-9]*" placeholder="1" aria-label="Punkte ändern">
@@ -774,4 +793,136 @@ render();
 .card-fan .mini-card:nth-child(6){transform:translateX(9px) rotate(20deg)}
 .card-fan .mini-card:nth-child(7){transform:translateX(13px) rotate(30deg)}
 .hand-count{font-size:9px;font-weight:950;min-width:10px;text-align:right}
+</style>
+
+<style id="v019-team-layout">
+.players.team-mode{
+  grid-template-columns:1fr!important;
+  grid-template-rows:repeat(2,minmax(0,1fr))!important;
+  gap:7px!important;
+  width:100%;
+}
+.team-card{
+  position:relative;
+  min-height:0;
+  padding:0!important;
+  overflow:hidden;
+  border:1px solid #31546b!important;
+  border-radius:14px!important;
+  background:rgba(3,12,20,.82)!important;
+  display:grid!important;
+  grid-template-rows:auto minmax(0,1fr) auto!important;
+  gap:0!important;
+}
+.team-title{
+  position:relative;
+  z-index:6;
+  padding:4px 8px;
+  text-align:center;
+  font-size:10px!important;
+  font-weight:950;
+  letter-spacing:.10em;
+  text-transform:uppercase;
+  background:rgba(2,8,14,.90);
+  border-bottom:1px solid #24485f;
+}
+.team-player-split{
+  position:relative;
+  min-height:0;
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  overflow:hidden;
+}
+.team-player-half{
+  position:relative;
+  min-width:0;
+  overflow:hidden;
+  display:grid;
+  grid-template-rows:auto 1fr;
+  align-content:start;
+}
+.team-player-half.left{border-right:1px solid rgba(142,177,200,.30)}
+.team-faction-art{
+  position:absolute;
+  inset:0;
+  background-size:cover;
+  background-position:center;
+  opacity:.72;
+}
+.team-half-overlay{
+  position:absolute;
+  inset:0;
+  background:linear-gradient(180deg,rgba(2,8,14,.18),rgba(2,8,14,.52) 55%,rgba(2,8,14,.88));
+}
+.team-player-top,
+.team-player-name-row{
+  position:relative;
+  z-index:3;
+}
+.team-player-top{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:5px;
+  padding:6px 7px 2px;
+}
+.team-player-name-row{
+  align-self:end;
+  padding:2px 7px 7px;
+}
+.team-player-name-row .name{
+  width:100%;
+  background:rgba(2,8,14,.50)!important;
+}
+.team-score-center{
+  position:absolute;
+  z-index:5;
+  left:50%;
+  top:50%;
+  transform:translate(-50%,-50%);
+  min-width:86px;
+  min-height:86px;
+  border-radius:50%;
+  border:1px solid rgba(205,231,246,.45);
+  background:rgba(2,9,16,.90);
+  box-shadow:0 8px 24px rgba(0,0,0,.50);
+  display:grid;
+  place-items:center;
+  pointer-events:none;
+}
+.team-score{
+  font-size:clamp(42px,11vw,68px)!important;
+  font-weight:1000!important;
+  line-height:.9!important;
+  text-align:center;
+}
+.team-controls{
+  position:relative;
+  z-index:6;
+  display:grid!important;
+  grid-template-columns:44px minmax(56px,90px) 44px!important;
+  justify-content:center;
+  gap:6px!important;
+  padding:5px 7px 7px;
+  background:rgba(2,8,14,.90);
+  border-top:1px solid #24485f;
+}
+.team-controls button{min-height:38px!important;font-size:18px!important}
+.team-controls input{min-width:0;text-align:center}
+@media(max-width:420px){
+  .players.team-mode{gap:5px!important}
+  .team-score-center{min-width:76px;min-height:76px}
+  .team-score{font-size:42px!important}
+  .team-player-top{padding:5px 5px 1px}
+  .team-player-name-row{padding:1px 5px 5px}
+}
+</style>
+
+<style id="v019-handfan">
+.card-fan{width:31px!important;height:20px!important;flex:0 0 31px!important}
+.card-fan .mini-card{left:10px!important}
+.card-fan .mini-card:nth-child(1){transform:translateX(-6px) rotate(-18deg)!important}
+.card-fan .mini-card:nth-child(2){transform:translateX(0) rotate(0)!important}
+.card-fan .mini-card:nth-child(3){transform:translateX(6px) rotate(18deg)!important}
+.card-fan .mini-card:nth-child(n+4){display:none!important}
 </style>
