@@ -31,9 +31,13 @@
     .card.dead{opacity:.62;filter:saturate(.55)}
     .empty-slot{border:1px dashed var(--line);border-radius:13px;display:flex;align-items:center;justify-content:center}
     .empty-slot button{font-size:13px}
-    .player-head{display:flex;align-items:center;gap:3px;min-width:0}
+    .player-head{display:flex;align-items:center;gap:3px;min-width:0;position:relative;padding-right:38px}
     .name{width:100%;min-width:0;background:transparent;border:0;color:var(--text);font-weight:800;font-size:13px;outline:none;padding:2px}
     .remove{width:24px;height:24px;flex:0 0 24px;padding:0;border-radius:7px;border:1px solid var(--line);background:transparent;color:var(--muted);font-weight:900}
+    .series-wins{position:absolute;right:0;top:0;min-width:32px;height:24px;display:flex;align-items:center;justify-content:center;gap:3px;border-radius:8px;background:rgba(255,255,255,.05);border:1px solid var(--line);font-size:11px;font-weight:800;color:#f4d77f}
+    .winner-card{outline:2px solid rgba(244,215,127,.65);box-shadow:0 0 0 2px rgba(244,215,127,.08) inset}
+    .winner-trophy{position:absolute;left:50%;top:38%;transform:translate(-50%,-50%);font-size:clamp(34px,6vh,58px);filter:drop-shadow(0 4px 8px rgba(0,0,0,.35));pointer-events:none;z-index:2}
+    .game-over-lock .controls,.game-over-lock .remove{pointer-events:none;opacity:.45}
     .score-wrap{min-height:0;display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden}
     .score{border:0;background:transparent;color:var(--text);font-size:clamp(38px,8.8vh,78px);font-weight:900;line-height:.92;letter-spacing:-.05em;padding:2px 6px}
     .score.zero{color:var(--danger)}
@@ -56,6 +60,11 @@
     .log{display:flex;flex-direction:column;gap:4px;max-height:60dvh;overflow:auto}
     .log-entry{display:grid;grid-template-columns:58px minmax(0,1fr) auto;gap:7px;padding:6px 0;border-top:1px solid rgba(38,55,84,.7);font-size:12px}
     .log-entry:first-child{border-top:0}.log-time{color:var(--muted)}.log-change.plus{color:var(--ok);font-weight:800}.log-change.minus{color:var(--danger);font-weight:800}
+
+    .gameover-title{font-size:20px;font-weight:900;margin:0 0 6px}
+    .gameover-winner{font-size:15px;margin:0;color:#f4d77f}
+    .gameover-actions{display:flex;justify-content:center;gap:8px;margin-top:16px}
+    .gameover-actions .btn{min-width:118px}
     @media(max-height:650px){.app{padding:3px;gap:3px}header{min-height:29px}.btn{padding:5px 6px}.card{padding:4px}.score{font-size:clamp(31px,7.4vh,55px)}.controls{grid-template-columns:37px minmax(0,1fr) 37px}.custom-change{grid-template-columns:27px minmax(0,1fr) 27px}.score-btn{padding:4px 1px}.custom-input{padding:3px 1px;font-size:12px}}
     @media(max-width:390px){h1{font-size:13px}.btn{font-size:10px;padding:5px 6px}.controls{grid-template-columns:38px minmax(0,1fr) 38px}.custom-change{grid-template-columns:28px minmax(0,1fr) 28px}}
   </style>
@@ -99,35 +108,47 @@
   <div class="dialog-actions"><button id="closeLogBtn" class="btn">Schließen</button></div>
 </dialog>
 
+
+<dialog id="gameOverDialog">
+  <div class="gameover-title">Spiel beendet</div>
+  <p id="gameOverWinner" class="gameover-winner"></p>
+  <div class="gameover-actions">
+    <button id="continueSeriesBtn" class="btn">Neues Spiel</button>
+    <button id="endSeriesBtn" class="btn secondary" aria-label="Serie beenden">×</button>
+  </div>
+</dialog>
+
 <script>
-const STORAGE_KEY="realm-counter-state-v5";
-const OLD_STORAGE_KEYS=["realm-counter-state-v4","realm-counter-state-v3","realm-counter-state-v2","realm-counter-state-v1"];
+const STORAGE_KEY="realm-counter-state-v7";
+const OLD_STORAGE_KEYS=["realm-counter-state-v6","realm-counter-state-v5","realm-counter-state-v4","realm-counter-state-v3","realm-counter-state-v2","realm-counter-state-v1"];
 const MAX_PLAYERS=4, MIN_PLAYERS=2;
 const defaultState=()=>({startScore:50,players:[
-  {id:crypto.randomUUID(),name:"Spieler 1",score:50},
-  {id:crypto.randomUUID(),name:"Spieler 2",score:50}
-],history:[],log:[]});
+  {id:crypto.randomUUID(),name:"Spieler 1",score:50,wins:0},
+  {id:crypto.randomUUID(),name:"Spieler 2",score:50,wins:0}
+],history:[],log:[],gameOver:false,winnerIds:[]});
 
 let state;
 try{
   const saved=localStorage.getItem(STORAGE_KEY)||OLD_STORAGE_KEYS.map(k=>localStorage.getItem(k)).find(Boolean);
   state=saved?JSON.parse(saved):defaultState();
 }catch{state=defaultState()}
-state.history ||= []; state.log ||= [];
+state.history ||= []; state.log ||= []; state.gameOver ||= false; state.winnerIds ||= []; state.players=state.players.map(p=>({...p,wins:p.wins||0}));
 
 const playersEl=document.getElementById("players"),startScoreEl=document.getElementById("startScore"),
 addBtn=document.getElementById("addBtn"),undoBtn=document.getElementById("undoBtn"),wakeBtn=document.getElementById("wakeBtn"),
 logBtn=document.getElementById("logBtn"),settingsBtn=document.getElementById("settingsBtn"),newBtn=document.getElementById("newBtn"),
 wakeStatusEl=document.getElementById("wakeStatus"),logEl=document.getElementById("log"),clearLogBtn=document.getElementById("clearLogBtn"),
 scoreDialog=document.getElementById("scoreDialog"),scoreInput=document.getElementById("scoreInput"),scoreForm=document.getElementById("scoreForm"),
-settingsDialog=document.getElementById("settingsDialog"),logDialog=document.getElementById("logDialog");
+settingsDialog=document.getElementById("settingsDialog"),logDialog=document.getElementById("logDialog"),
+gameOverDialog=document.getElementById("gameOverDialog"),gameOverWinner=document.getElementById("gameOverWinner"),
+continueSeriesBtn=document.getElementById("continueSeriesBtn"),endSeriesBtn=document.getElementById("endSeriesBtn");
 
 let editingPlayerId=null,wakeLock=null,wakeRequested=false;
 const deltaAccumulators=new Map();
 
 function esc(s){return String(s).replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[m]))}
 function save(){localStorage.setItem(STORAGE_KEY,JSON.stringify(state))}
-function snapshot(){state.history.push({players:state.players.map(p=>({...p})),startScore:state.startScore,log:state.log.map(x=>({...x}))});if(state.history.length>100)state.history.shift()}
+function snapshot(){state.history.push({players:state.players.map(p=>({...p})),startScore:state.startScore,log:state.log.map(x=>({...x})),gameOver:state.gameOver,winnerIds:[...(state.winnerIds||[])]});if(state.history.length>100)state.history.shift()}
 function addLog(player,delta,from,to,type="change"){state.log.unshift({id:crypto.randomUUID(),time:Date.now(),player:player.name,delta,from,to,type});if(state.log.length>200)state.log.length=200}
 function formatTime(ts){return new Date(ts).toLocaleTimeString([], {hour:"2-digit",minute:"2-digit",second:"2-digit"})}
 
@@ -135,7 +156,8 @@ function renderLog(){
   if(!state.log.length){logEl.innerHTML='<div class="hint">Noch keine Änderungen.</div>';return}
   logEl.innerHTML=state.log.map(e=>{
     const sign=e.delta>0?"+":"",cls=e.delta>0?"plus":e.delta<0?"minus":"";
-    return `<div class="log-entry"><span class="log-time">${formatTime(e.time)}</span><span>${esc(e.player)} · ${e.from} → ${e.to}</span><span class="log-change ${cls}">${sign}${e.delta}</span></div>`
+    const middle=e.type==="gameover"?(e.text||"Spiel beendet"):e.type==="newgame"?"Neues Spiel":`${esc(e.player)} · ${e.from} → ${e.to}`;
+    return `<div class="log-entry"><span class="log-time">${formatTime(e.time)}</span><span>${middle}</span><span class="log-change ${cls}">${e.delta?sign+e.delta:""}</span></div>`
   }).join("")
 }
 
@@ -151,13 +173,16 @@ function render(){
       playersEl.appendChild(empty); continue;
     }
     const card=document.createElement("article");
-    card.className="card"+(player.score<=0?" dead":"");
+    const isWinner=(state.winnerIds||[]).includes(player.id);
+    card.className="card"+(player.score<=0?" dead game-over-lock":"")+(isWinner?" winner-card":"")+(state.gameOver?" game-over-lock":"");
     card.innerHTML=`
       <div class="player-head">
         <input class="name" data-action="name" data-id="${player.id}" maxlength="24" value="${esc(player.name)}">
         <button class="remove" data-action="remove" data-id="${player.id}">×</button>
+        <div class="series-wins" title="Siege in dieser Serie">🏆 ${player.wins||0}</div>
       </div>
       <div class="score-wrap">
+        ${isWinner?'<div class="winner-trophy" aria-hidden="true">🏆</div>':""}
         <div id="delta-${player.id}" class="delta-float"></div>
         <button class="score ${player.score<=0?"zero":""}" data-action="edit" data-id="${player.id}">${player.score}</button>
       </div>
@@ -188,20 +213,91 @@ function flashDelta(id,delta){
   const timer=setTimeout(()=>deltaAccumulators.delete(id),3000);
   deltaAccumulators.set(id,{total,timer})
 }
+function checkForGameOver(){
+  if(state.gameOver)return;
+  const active=state.players.filter(p=>p.score>0);
+
+  if(active.length>1){
+    render();
+    return;
+  }
+
+  if(active.length===1){
+    const winner=active[0];
+    state.gameOver=true;
+    state.winnerIds=[winner.id];
+    winner.wins=(winner.wins||0)+1;
+    state.log.unshift({
+      id:crypto.randomUUID(),time:Date.now(),player:"Spiel",
+      delta:0,from:0,to:0,type:"gameover",
+      text:`${winner.name} gewinnt`
+    });
+    render();
+    showGameOver();
+    return;
+  }
+
+  // Falls theoretisch alle gleichzeitig auf 0 landen: kein Sieger.
+  state.gameOver=true;
+  state.winnerIds=[];
+  state.log.unshift({
+    id:crypto.randomUUID(),time:Date.now(),player:"Spiel",
+    delta:0,from:0,to:0,type:"gameover",
+    text:"Partie endet ohne Sieger"
+  });
+  render();
+  showGameOver();
+}
+
+function showGameOver(){
+  if(!state.gameOver)return;
+  const winners=state.players.filter(p=>(state.winnerIds||[]).includes(p.id));
+  gameOverWinner.textContent=winners.length===1?`${winners[0].name} gewinnt die Partie.`:"Partie beendet.";
+  if(!gameOverDialog.open)gameOverDialog.showModal();
+}
+
+function startNextGame(){
+  state.gameOver=false;
+  state.winnerIds=[];
+  state.players=state.players.map(p=>({...p,score:state.startScore}));
+  state.history=[];
+  state.log.unshift({id:crypto.randomUUID(),time:Date.now(),player:"Serie",delta:0,from:0,to:0,type:"newgame"});
+  save();
+  if(gameOverDialog.open)gameOverDialog.close();
+  render();
+}
+
+function endSeries(){
+  state.gameOver=false;
+  state.winnerIds=[];
+  state.players=state.players.map(p=>({...p,score:state.startScore,wins:0}));
+  state.history=[];
+  state.log=[];
+  save();
+  if(gameOverDialog.open)gameOverDialog.close();
+  render();
+}
+
 function changeScore(player,delta){
+  if(state.gameOver)return;
   const from=player.score,to=Math.max(0,from+delta),actual=to-from;if(!actual)return;
-  snapshot();player.score=to;addLog(player,actual,from,to);render();requestAnimationFrame(()=>flashDelta(player.id,actual))
+  snapshot();player.score=to;addLog(player,actual,from,to);
+  const reachedZero=to===0;
+  render();
+  requestAnimationFrame(()=>flashDelta(player.id,actual));
+  if(reachedZero)checkForGameOver();
 }
 function addPlayer(){
   if(state.players.length>=MAX_PLAYERS)return;
   snapshot();const n=state.players.length+1;
-  state.players.push({id:crypto.randomUUID(),name:`Spieler ${n}`,score:state.startScore});render()
+  state.players.push({id:crypto.randomUUID(),name:`Spieler ${n}`,score:state.startScore,wins:0});render()
 }
 
 playersEl.addEventListener("click",e=>{
   const btn=e.target.closest("[data-action]");if(!btn)return;
   if(btn.dataset.action==="add-slot"){addPlayer();return}
   const id=btn.dataset.id,player=state.players.find(p=>p.id===id);if(!player)return;
+  if((state.gameOver || player.score<=0) && !["name"].includes(btn.dataset.action))return;
   if(btn.dataset.action==="change")changeScore(player,Number(btn.dataset.delta));
   if(btn.dataset.action==="custom-apply"){
     const input=playersEl.querySelector(`[data-action="custom-input"][data-id="${id}"]`);
@@ -220,14 +316,20 @@ playersEl.addEventListener("input",e=>{
 
 scoreForm.addEventListener("submit",()=>{
   if(scoreDialog.returnValue==="cancel")return;
-  const p=state.players.find(p=>p.id===editingPlayerId);if(!p)return;
+  const p=state.players.find(p=>p.id===editingPlayerId);if(!p||state.gameOver)return;
   const from=p.score,to=Math.max(0,Math.min(9999,Number(scoreInput.value)||0));
-  if(from!==to){snapshot();p.score=to;addLog(p,to-from,from,to,"set");render();requestAnimationFrame(()=>flashDelta(p.id,to-from))}
+  if(from!==to){
+    snapshot();p.score=to;addLog(p,to-from,from,to,"set");
+    const reachedZero=to===0;
+    render();
+    requestAnimationFrame(()=>flashDelta(p.id,to-from));
+    if(reachedZero)checkForGameOver();
+  }
   editingPlayerId=null
 });
 
-undoBtn.addEventListener("click",()=>{const prev=state.history.pop();if(!prev)return;state.players=prev.players;state.startScore=prev.startScore;state.log=prev.log;render()});
-newBtn.addEventListener("click",()=>{if(!confirm(`Neues Spiel mit ${state.startScore} Startpunkten beginnen?`))return;snapshot();state.players=state.players.map((p,i)=>({...p,name:p.name||`Spieler ${i+1}`,score:state.startScore}));state.log=[];render()});
+undoBtn.addEventListener("click",()=>{const prev=state.history.pop();if(!prev)return;state.players=prev.players;state.startScore=prev.startScore;state.log=prev.log;state.gameOver=prev.gameOver;state.winnerIds=prev.winnerIds||[];if(gameOverDialog.open)gameOverDialog.close();render();if(state.gameOver)showGameOver()});
+newBtn.addEventListener("click",()=>{if(!confirm(`Aktuelle Partie zurücksetzen? Die Serie bleibt erhalten.`))return;snapshot();state.gameOver=false;state.winnerIds=[];state.players=state.players.map((p,i)=>({...p,name:p.name||`Spieler ${i+1}`,score:state.startScore}));state.log=[];if(gameOverDialog.open)gameOverDialog.close();render()});
 addBtn.addEventListener("click",addPlayer);
 startScoreEl.addEventListener("change",()=>{state.startScore=Math.max(1,Math.min(999,Number(startScoreEl.value)||50));save();render()});
 
@@ -236,6 +338,8 @@ document.getElementById("closeLogBtn").addEventListener("click",()=>logDialog.cl
 clearLogBtn.addEventListener("click",()=>{if(!state.log.length)return;snapshot();state.log=[];renderLog();save()});
 settingsBtn.addEventListener("click",()=>settingsDialog.showModal());
 document.getElementById("closeSettingsBtn").addEventListener("click",()=>settingsDialog.close());
+continueSeriesBtn.addEventListener("click",startNextGame);
+endSeriesBtn.addEventListener("click",endSeries);
 
 async function requestWakeLock(){
   wakeRequested=true;
@@ -257,6 +361,7 @@ document.addEventListener("visibilitychange",()=>{if(document.visibilityState===
 
 if("serviceWorker" in navigator)window.addEventListener("load",()=>navigator.serviceWorker.register("./sw.js"));
 render();
+if(state.gameOver)setTimeout(showGameOver,50);
 </script>
 </body>
 </html>
