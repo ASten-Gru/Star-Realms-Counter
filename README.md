@@ -1,4 +1,4 @@
-# Star Realm Counter v0.22
+# Star Realm Counter v0.23
 
 Mobile, installierbare PWA zum Zählen von Authority/Punkten und Serienpunkten bei Star-Realms-artigen Kartenspielen.
 
@@ -59,7 +59,7 @@ Der Team-Modus basiert auf der offiziellen 2-gegen-2-Hydra-Spielweise, wird in d
 - Sinkt die gemeinsame Authority eines Teams auf 0, gewinnt das andere Team.
 - Beide Spieler des Siegerteams erhalten jeweils 1 Serienpunkt.
 
-Im Team-Modus wird die gemeinsame Authority mit derselben zweireihigen Bedienlogik wie in den anderen Spielmodi geändert: oben stehen die Schnellbuttons `−1` und `+1`, darunter `−`, Zahlenfeld und `+` für beliebige Werte.
+Im Team-Modus verwendet der gemeinsame Authority-Zähler nun exakt dieselbe Punktebedienung wie die Spielerzähler in FFA und Boss: identische Buttons, Größen, Abstände und zweireihige Anordnung mit `−1` / `+1` oben sowie `−` / Zahlenfeld / `+` darunter.
 
 #### Darstellung
 
@@ -210,4 +210,4 @@ Nach dem Ersetzen geänderter Dateien und dem Commit wird die neue Version über
 
 ## Version
 
-Aktueller Stand: **v0.22**
+Aktueller Stand: **v0.23**

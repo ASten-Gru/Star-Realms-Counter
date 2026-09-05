@@ -6,7 +6,7 @@
   <meta name="theme-color" content="#06111f" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-  <title>Star Realm Counter v.0.22</title>
+  <title>Star Realm Counter v.0.23</title>
   <link rel="manifest" href="manifest.webmanifest" />
   <style>
     :root{
@@ -257,32 +257,14 @@
       .round-end-btn{width:36px;height:36px;font-size:18px}
     }
   
-/* v0.22 – Team controls match the other game modes */
-.team-controls{
-  display:grid!important;
-  grid-template-columns:1fr!important;
-  gap:5px!important;
-  padding:5px 7px 7px!important;
-}
-.team-quick-controls{
-  display:grid;
-  grid-template-columns:1fr 1fr;
-  gap:6px;
-}
-.team-custom-controls{
-  display:grid;
-  grid-template-columns:44px minmax(56px,90px) 44px;
-  justify-content:center;
-  gap:6px;
-}
-.team-quick-controls button,
-.team-custom-controls button{
-  min-height:38px!important;
-  font-size:18px!important;
-}
-.team-custom-controls input{
-  min-width:0;
-  text-align:center;
+
+/* v0.23 – Team counter uses the same controls as all other modes */
+.team-card > .controls.team-controls{
+  position:relative;
+  z-index:6;
+  margin:0;
+  border-top:1px solid #24485f;
+  background:rgba(2,8,14,.90);
 }
 
 </style>
@@ -292,7 +274,7 @@
   <header class="topbar">
     <button id="menuBtn" class="icon-btn" aria-label="Menü">☰</button>
     <div class="title-wrap">
-      <h1 class="title">Star Realm Counter v.0.22</h1>
+      <h1 class="title">Star Realm Counter v.0.23</h1>
       <div class="subtitle">Trade · Attack · Dominate</div>
     </div>
     <button id="settingsBtn" class="icon-btn" aria-label="Einstellungen">⚙</button>
@@ -348,7 +330,7 @@
 </dialog>
 
 <script>
-const STORAGE_KEY="realm-counter-state-v22";
+const STORAGE_KEY="realm-counter-state-v23";
 const OLD_STORAGE_KEYS=["realm-counter-state-v13","realm-counter-state-v12","realm-counter-state-v11","realm-counter-state-v10","realm-counter-state-v9","realm-counter-state-v8","realm-counter-state-v7","realm-counter-state-v6","realm-counter-state-v5","realm-counter-state-v4","realm-counter-state-v3","realm-counter-state-v2","realm-counter-state-v1"];
 const MAX_PLAYERS=4,MIN_PLAYERS=2;
 const FACTIONS=[
@@ -532,12 +514,12 @@ function renderTeam(){
         </div>
       </div>
 
-      <div class="team-controls">
-        <div class="team-quick-controls">
+      <div class="controls team-controls">
+        <div class="quick">
           <button type="button" data-action="team-quick-minus" data-team="${team}" ${state.gameOver?"disabled":""}>−1</button>
           <button type="button" data-action="team-quick-plus" data-team="${team}" ${state.gameOver?"disabled":""}>+1</button>
         </div>
-        <div class="team-custom-controls">
+        <div class="custom-row">
           <button type="button" data-action="team-minus" data-team="${team}" ${state.gameOver?"disabled":""}>−</button>
           <input class="custom" data-team-input="${team}" inputmode="numeric" pattern="[0-9]*" placeholder="1" aria-label="Punkte ändern">
           <button type="button" data-action="team-plus" data-team="${team}" ${state.gameOver?"disabled":""}>+</button>
