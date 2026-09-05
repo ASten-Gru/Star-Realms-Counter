@@ -1,4 +1,4 @@
-# Star Realm Counter v0.26
+# Star Realm Counter v0.27
 
 Mobile, installierbare PWA zum Zählen von Authority/Punkten und Serienpunkten bei Star-Realms-artigen Kartenspielen.
 
@@ -210,21 +210,20 @@ Nach dem Ersetzen geänderter Dateien und dem Commit wird die neue Version über
 
 ## Version
 
-Aktueller Stand: **v0.26**
+Aktueller Stand: **v0.27**
 
 
-### Änderungen in v0.26
+### Änderungen in v0.27
 
 - Im Boss-Modus stehen Boss-/Team-Plakette und Handkarten-Anzeige direkt unter Fraktionssymbol und Serienpunkten.
 - Die Authority-Anzeigen sind in den Spielerfenstern vertikal zentriert.
 - Die Fraktionsauswahl im Team-Modus wurde repariert. Eine Fraktion bleibt teamübergreifend auswählbar, solange sie nicht von beiden Spielern des gegnerischen Teams gleichzeitig verwendet wird.
 
-### Audio in v0.26
 
-- `outer_space.mp3` läuft als nahtlos wiederholte Hintergrundmusik.
-- Musik und Soundeffekte können im Zahnrad-Menü getrennt aktiviert und in der Lautstärke geregelt werden.
-- Schadenspunkte von 1 bis 9 erzeugen einen kurzen synthetischen Sci-Fi-Laser.
-- Ab 10 Schadenspunkten wird ein tiefer Explosions-/Impact-Sound erzeugt.
-- Positive Authority-Änderungen erhalten einen helleren Energie-Sound.
-- Die Effekte werden direkt mit der Web Audio API erzeugt und benötigen keine zusätzlichen Sounddateien.
-- Das linke Hamburger-Menü wurde entfernt; Einstellungen liegen nur noch rechts unter dem Zahnrad.
+
+### Änderungen in v0.27
+
+- Hintergrundmusik und Soundeffekte wurden vollständig entfernt.
+- Die Audio-Einstellungen im Zahnrad-Menü wurden entfernt.
+- Das linke Hamburger-Menü bleibt entfernt.
+- Alle übrigen Funktionen und Layout-Änderungen bleiben erhalten.

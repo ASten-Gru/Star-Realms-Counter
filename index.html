@@ -6,7 +6,7 @@
   <meta name="theme-color" content="#06111f" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-  <title>Star Realm Counter v.0.26</title>
+  <title>Star Realm Counter v.0.27</title>
   <link rel="manifest" href="manifest.webmanifest" />
   <style>
     :root{
@@ -296,7 +296,7 @@
   <header class="topbar">
     <div aria-hidden="true"></div>
     <div class="title-wrap">
-      <h1 class="title">Star Realm Counter v.0.26</h1>
+      <h1 class="title">Star Realm Counter v.0.27</h1>
       <div class="subtitle">Trade · Attack · Dominate</div>
     </div>
     <button id="settingsBtn" class="icon-btn" aria-label="Einstellungen">⚙</button>
@@ -323,9 +323,6 @@
     </div>
   </footer>
 </main>
-
-
-<audio id="ambientMusic" src="./outer_space.mp3" loop preload="auto"></audio>
 <div id="factionMenu" class="faction-menu" role="menu" aria-label="Fraktion wählen"></div>
 
 <dialog id="scoreDialog">
@@ -340,10 +337,6 @@
   <strong>Einstellungen</strong>
   <div class="settings-row"><label for="startScore">Startpunkte</label><input id="startScore" type="number" inputmode="numeric" min="1" max="999" value="50"></div>
   <div class="settings-row"><span>Spieler</span><button id="addBtn" class="small-btn">+ Spieler</button></div>
-  <div class="settings-row"><label for="musicEnabled">Musik</label><input id="musicEnabled" type="checkbox" checked></div>
-  <div class="settings-row"><label for="musicVolume">Musiklautstärke</label><input id="musicVolume" type="range" min="0" max="100" value="28"></div>
-  <div class="settings-row"><label for="sfxEnabled">Soundeffekte</label><input id="sfxEnabled" type="checkbox" checked></div>
-  <div class="settings-row"><label for="sfxVolume">Effektlautstärke</label><input id="sfxVolume" type="range" min="0" max="100" value="55"></div>
   <p id="wakeStatus" class="hint"></p>
   <div class="dialog-actions"><button id="closeSettingsBtn" class="small-btn">Schließen</button></div>
 </dialog>
@@ -357,7 +350,7 @@
 </dialog>
 
 <script>
-const STORAGE_KEY="realm-counter-state-v26";
+const STORAGE_KEY="realm-counter-state-v27";
 const OLD_STORAGE_KEYS=["realm-counter-state-v13","realm-counter-state-v12","realm-counter-state-v11","realm-counter-state-v10","realm-counter-state-v9","realm-counter-state-v8","realm-counter-state-v7","realm-counter-state-v6","realm-counter-state-v5","realm-counter-state-v4","realm-counter-state-v3","realm-counter-state-v2","realm-counter-state-v1"];
 const MAX_PLAYERS=4,MIN_PLAYERS=2;
 const FACTIONS=[
@@ -377,8 +370,7 @@ try{
   const saved=localStorage.getItem(STORAGE_KEY)||OLD_STORAGE_KEYS.map(k=>localStorage.getItem(k)).find(Boolean);
   state=saved?JSON.parse(saved):defaultState();
 }catch{state=defaultState()}
-state.history ||= []; state.log ||= []; state.gameOver ||= false;
-state.audio ||= {music:true,musicVolume:.28,sfx:true,sfxVolume:.55}; state.winnerIds ||= []; state.mode ||= "ffa"; state.bossIndex ??= 0;
+state.history ||= []; state.log ||= []; state.gameOver ||= false; state.winnerIds ||= []; state.mode ||= "ffa"; state.bossIndex ??= 0;
 state.players=state.players.map((p,i)=>({...p,wins:p.wins||0,faction:p.faction||FACTIONS[i%FACTIONS.length].id}));
 normalizeFactions();
 
@@ -389,64 +381,11 @@ ffaBtn=document.getElementById("ffaBtn"),bossBtn=document.getElementById("bossBt
 wakeStatusEl=document.getElementById("wakeStatus"),logEl=document.getElementById("log"),clearLogBtn=document.getElementById("clearLogBtn"),
 scoreDialog=document.getElementById("scoreDialog"),scoreInput=document.getElementById("scoreInput"),scoreForm=document.getElementById("scoreForm"),
 settingsDialog=document.getElementById("settingsDialog"),logDialog=document.getElementById("logDialog"),
-continueSeriesBtn=document.getElementById("continueSeriesBtn"),endSeriesBtn=document.getElementById("endSeriesBtn"),factionMenu=document.getElementById("factionMenu"),
-ambientMusic=document.getElementById("ambientMusic"),musicEnabled=document.getElementById("musicEnabled"),musicVolume=document.getElementById("musicVolume"),
-sfxEnabled=document.getElementById("sfxEnabled"),sfxVolume=document.getElementById("sfxVolume");
+continueSeriesBtn=document.getElementById("continueSeriesBtn"),endSeriesBtn=document.getElementById("endSeriesBtn"),factionMenu=document.getElementById("factionMenu");
 
 let editingPlayerId=null,wakeLock=null,wakeRequested=false;
 const deltaAccumulators=new Map();
 
-let audioCtx=null;
-function getAudioCtx(){
-  if(!audioCtx)audioCtx=new (window.AudioContext||window.webkitAudioContext)();
-  if(audioCtx.state==="suspended")audioCtx.resume();
-  return audioCtx;
-}
-function sfxGain(ctx,volume=1){
-  const g=ctx.createGain();g.gain.value=Math.max(0,Math.min(1,state.audio.sfxVolume))*volume;g.connect(ctx.destination);return g;
-}
-function playLaser(strength=1){
-  if(!state.audio.sfx)return;
-  const ctx=getAudioCtx(),now=ctx.currentTime,d=.09+Math.min(strength,5)*.012;
-  const osc=ctx.createOscillator(),g=sfxGain(ctx,.28);
-  osc.type="sawtooth";osc.frequency.setValueAtTime(980,now);osc.frequency.exponentialRampToValueAtTime(170,now+d);
-  g.gain.setValueAtTime(.0001,now);g.gain.exponentialRampToValueAtTime(.7,now+.008);g.gain.exponentialRampToValueAtTime(.0001,now+d);
-  osc.connect(g);osc.start(now);osc.stop(now+d);
-}
-function playExplosion(){
-  if(!state.audio.sfx)return;
-  const ctx=getAudioCtx(),now=ctx.currentTime,d=.75,buffer=ctx.createBuffer(1,ctx.sampleRate*d,ctx.sampleRate),data=buffer.getChannelData(0);
-  for(let i=0;i<data.length;i++)data[i]=(Math.random()*2-1)*(1-i/data.length);
-  const noise=ctx.createBufferSource(),filter=ctx.createBiquadFilter(),g=sfxGain(ctx,.55);
-  noise.buffer=buffer;filter.type="lowpass";filter.frequency.setValueAtTime(650,now);filter.frequency.exponentialRampToValueAtTime(90,now+d);
-  g.gain.setValueAtTime(.9,now);g.gain.exponentialRampToValueAtTime(.0001,now+d);
-  noise.connect(filter);filter.connect(g);noise.start(now);
-  const osc=ctx.createOscillator(),og=sfxGain(ctx,.28);osc.type="sine";osc.frequency.setValueAtTime(95,now);osc.frequency.exponentialRampToValueAtTime(38,now+d);
-  og.gain.setValueAtTime(.7,now);og.gain.exponentialRampToValueAtTime(.0001,now+d);osc.connect(og);osc.start(now);osc.stop(now+d);
-}
-function playHeal(amount=1){
-  if(!state.audio.sfx)return;
-  const ctx=getAudioCtx(),now=ctx.currentTime,osc=ctx.createOscillator(),g=sfxGain(ctx,.18);
-  osc.type="sine";osc.frequency.setValueAtTime(330,now);osc.frequency.exponentialRampToValueAtTime(520+Math.min(amount,10)*10,now+.18);
-  g.gain.setValueAtTime(.0001,now);g.gain.exponentialRampToValueAtTime(.45,now+.02);g.gain.exponentialRampToValueAtTime(.0001,now+.22);
-  osc.connect(g);osc.start(now);osc.stop(now+.23);
-}
-function playPointSfx(delta){
-  if(delta<=-10)playExplosion();
-  else if(delta<0)playLaser(Math.abs(delta));
-  else if(delta>0)playHeal(delta);
-}
-function applyAudioSettings(){
-  ambientMusic.volume=Math.max(0,Math.min(1,state.audio.musicVolume));
-  musicEnabled.checked=!!state.audio.music;musicVolume.value=Math.round(state.audio.musicVolume*100);
-  sfxEnabled.checked=!!state.audio.sfx;sfxVolume.value=Math.round(state.audio.sfxVolume*100);
-  if(!state.audio.music)ambientMusic.pause();
-}
-function startAmbient(){
-  if(!state.audio.music)return;
-  ambientMusic.volume=state.audio.musicVolume;
-  ambientMusic.play().catch(()=>{});
-}
 
 
 function esc(s){return String(s).replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[m]))}
@@ -551,7 +490,6 @@ function changeTeamScore(team,delta){
   const from=Number(state.teamScores?.[team] ?? 75);
   const to=Math.max(0,Math.min(9999,from+delta));
   state.teamScores[team]=to;
-  playPointSfx(to-from);
 
   addLog({name:team===0?"Team A":"Team B"},to-from,from,to);
 
@@ -710,7 +648,7 @@ function flashDelta(id,delta){
 function changeScore(player,delta){
   if(state.gameOver||player.score<=0)return;
   const from=player.score,to=Math.max(0,from+delta),actual=to-from;if(!actual)return;
-  snapshot();player.score=to;addLog(player,actual,from,to);playPointSfx(actual);
+  snapshot();player.score=to;addLog(player,actual,from,to);
   const reachedZero=to===0;
   render();requestAnimationFrame(()=>flashDelta(player.id,actual));
   if(reachedZero)checkForGameOver();
@@ -886,11 +824,6 @@ document.getElementById("closeLogBtn").addEventListener("click",()=>logDialog.cl
 clearLogBtn.addEventListener("click",()=>{state.log=[];renderLog();save()});
 settingsBtn.addEventListener("click",()=>settingsDialog.showModal());
 document.getElementById("closeSettingsBtn").addEventListener("click",()=>settingsDialog.close());
-musicEnabled.addEventListener("change",()=>{state.audio.music=musicEnabled.checked;save();if(state.audio.music)startAmbient();else ambientMusic.pause()});
-musicVolume.addEventListener("input",()=>{state.audio.musicVolume=Number(musicVolume.value)/100;ambientMusic.volume=state.audio.musicVolume;save()});
-sfxEnabled.addEventListener("change",()=>{state.audio.sfx=sfxEnabled.checked;save()});
-sfxVolume.addEventListener("input",()=>{state.audio.sfxVolume=Number(sfxVolume.value)/100;save()});
-document.addEventListener("pointerdown",startAmbient,{once:true});
 
 async function requestWakeLock(){
   wakeRequested=true;
@@ -908,7 +841,6 @@ wakeBtn.addEventListener("click",()=>{if(wakeLock||wakeRequested)releaseWakeLock
 document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible"&&wakeRequested&&!wakeLock)requestWakeLock()});
 
 if("serviceWorker" in navigator)window.addEventListener("load",()=>navigator.serviceWorker.register("./sw.js"));
-applyAudioSettings();
 render();
 </script>
 </body>
