@@ -6,7 +6,7 @@
   <meta name="theme-color" content="#06111f" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-  <title>Star Realm Counter v.0.24</title>
+  <title>Star Realm Counter v.0.25</title>
   <link rel="manifest" href="manifest.webmanifest" />
   <style>
     :root{
@@ -266,6 +266,29 @@
   background:rgba(2,8,14,.90);
 }
 
+
+/* v0.25 – Boss metadata and Authority alignment */
+.players.boss-mode .card-meta-row{
+  margin-top:-4px!important;
+  padding:0 6px 2px!important;
+  align-self:start!important;
+}
+.card .score-wrap{
+  position:absolute!important;
+  left:0!important;
+  right:0!important;
+  top:50%!important;
+  transform:translateY(-50%)!important;
+  display:flex!important;
+  align-items:center!important;
+  justify-content:center!important;
+  z-index:2!important;
+  pointer-events:none;
+}
+.card .score-wrap .score{
+  pointer-events:auto;
+}
+
 </style>
 </head>
 <body>
@@ -273,7 +296,7 @@
   <header class="topbar">
     <button id="menuBtn" class="icon-btn" aria-label="Menü">☰</button>
     <div class="title-wrap">
-      <h1 class="title">Star Realm Counter v.0.24</h1>
+      <h1 class="title">Star Realm Counter v.0.25</h1>
       <div class="subtitle">Trade · Attack · Dominate</div>
     </div>
     <button id="settingsBtn" class="icon-btn" aria-label="Einstellungen">⚙</button>
@@ -329,7 +352,7 @@
 </dialog>
 
 <script>
-const STORAGE_KEY="realm-counter-state-v24";
+const STORAGE_KEY="realm-counter-state-v25";
 const OLD_STORAGE_KEYS=["realm-counter-state-v13","realm-counter-state-v12","realm-counter-state-v11","realm-counter-state-v10","realm-counter-state-v9","realm-counter-state-v8","realm-counter-state-v7","realm-counter-state-v6","realm-counter-state-v5","realm-counter-state-v4","realm-counter-state-v3","realm-counter-state-v2","realm-counter-state-v1"];
 const MAX_PLAYERS=4,MIN_PLAYERS=2;
 const FACTIONS=[
@@ -396,19 +419,21 @@ function renderLog(){
 function factionClass(id){return FACTIONS.find(f=>f.id===id)?.className||""}
 function factionData(id){return FACTIONS.find(f=>f.id===id)||FACTIONS[0]}
 let factionMenuPlayerId=null;
+function factionAllowedForPlayer(player,factionId){
+  if(!player||!FACTIONS.some(f=>f.id===factionId))return false;
+  if(state.mode!=="team"){
+    return !state.players.some(other=>other.id!==player.id&&other.faction===factionId);
+  }
+  const playerTeam=teamIndexForPlayer(player.id);
+  const otherTeam=playerTeam===0?1:0;
+  const otherMembers=state.players.filter(p=>teamIndexForPlayer(p.id)===otherTeam);
+  return !(otherMembers.length===2&&otherMembers.every(p=>p.faction===factionId));
+}
 function closeFactionMenu(){factionMenu.classList.remove("show");factionMenuPlayerId=null}
 function openFactionMenu(player,anchor){
   factionMenuPlayerId=player.id;
-  const playerTeam=state.mode==="team"?teamIndexForPlayer(player.id):-1;
   factionMenu.innerHTML=FACTIONS.map(f=>{
-    let disabled=false;
-    if(state.mode==="team"){
-      const otherTeam=playerTeam===0?1:0;
-      const otherMembers=state.players.filter(p=>teamIndexForPlayer(p.id)===otherTeam);
-      disabled=otherMembers.length===2&&otherMembers.every(p=>p.faction===f.id);
-    }else{
-      disabled=state.players.some(p=>p.id!==player.id&&p.faction===f.id);
-    }
+    const disabled=!factionAllowedForPlayer(player,f.id);
     return `
     <button type="button" class="faction-choice ${f.id===player.faction?"selected":""}" data-faction="${f.id}" ${disabled?"disabled":""} title="${f.name}" aria-label="${f.name}">
       <img src="${f.icon}" alt="">
@@ -763,7 +788,7 @@ factionMenu.addEventListener("click",e=>{
   const btn=e.target.closest("[data-faction]");if(!btn||btn.disabled)return;
   const player=state.players.find(p=>p.id===factionMenuPlayerId);if(!player)return closeFactionMenu();
   const chosen=btn.dataset.faction;
-  if(state.players.some(other=>other.id!==player.id&&other.faction===chosen))return;
+  if(!factionAllowedForPlayer(player,chosen))return;
   player.faction=chosen;closeFactionMenu();render();
 });
 document.addEventListener("click",e=>{

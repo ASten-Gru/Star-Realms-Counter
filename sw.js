@@ -1,4 +1,4 @@
-const CACHE="realm-counter-v24";
+const CACHE="realm-counter-v25";
 const ASSETS=["./","./index.html","./manifest.webmanifest","./icon.svg",
   "./background.webp",
   "./blob_art.webp",

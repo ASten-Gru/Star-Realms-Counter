@@ -1,4 +1,4 @@
-# Star Realm Counter v0.24
+# Star Realm Counter v0.25
 
 Mobile, installierbare PWA zum Zählen von Authority/Punkten und Serienpunkten bei Star-Realms-artigen Kartenspielen.
 
@@ -210,4 +210,11 @@ Nach dem Ersetzen geänderter Dateien und dem Commit wird die neue Version über
 
 ## Version
 
-Aktueller Stand: **v0.24**
+Aktueller Stand: **v0.25**
+
+
+### Änderungen in v0.25
+
+- Im Boss-Modus stehen Boss-/Team-Plakette und Handkarten-Anzeige direkt unter Fraktionssymbol und Serienpunkten.
+- Die Authority-Anzeigen sind in den Spielerfenstern vertikal zentriert.
+- Die Fraktionsauswahl im Team-Modus wurde repariert. Eine Fraktion bleibt teamübergreifend auswählbar, solange sie nicht von beiden Spielern des gegnerischen Teams gleichzeitig verwendet wird.
