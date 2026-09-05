@@ -21,11 +21,17 @@
     button,input{font:inherit} button{touch-action:manipulation}
     .app{height:100dvh;display:grid;grid-template-rows:auto minmax(0,1fr);gap:5px;padding:5px;overflow:hidden}
     header{display:flex;align-items:center;justify-content:space-between;gap:6px;min-height:34px}
-    h1{font-size:15px;line-height:1;margin:0;white-space:nowrap}
+    h1{font-size:15px;line-height:1;margin:0;white-space:nowrap}.brandline{display:flex;align-items:center;gap:6px}.version{font-size:9px;color:var(--muted);border:1px solid var(--line);border-radius:999px;padding:2px 5px}
     .top-actions{display:flex;gap:4px;min-width:0}
     .btn{border:1px solid var(--line);background:var(--panel2);color:var(--text);padding:6px 8px;border-radius:9px;font-weight:750;font-size:11px;white-space:nowrap}
     .btn.secondary{background:transparent}.btn.danger{border-color:#5d2b36;color:#ffd5d8}
     .players{min-height:0;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));grid-template-rows:repeat(2,minmax(0,1fr));gap:5px}
+    .players.boss-mode{grid-template-columns:repeat(3,minmax(0,1fr));grid-template-rows:minmax(0,1fr) minmax(0,1fr)}
+    .players.boss-mode .boss-card{grid-column:1 / -1}
+    .players.boss-mode.boss-two{grid-template-columns:1fr;grid-template-rows:repeat(2,minmax(0,1fr))}
+    .players.boss-mode.boss-two .boss-card{grid-column:1}
+    .players.boss-mode.boss-three{grid-template-columns:repeat(2,minmax(0,1fr))}
+    .players.boss-mode.boss-three .boss-card{grid-column:1 / -1}
     .card{position:relative;min-width:0;min-height:0;background:linear-gradient(180deg,#16233d,#0e192d);
       border:1px solid var(--line);border-radius:13px;padding:6px;display:grid;grid-template-rows:auto minmax(0,1fr) auto;overflow:hidden}
     .card.dead{opacity:.62;filter:saturate(.55)}
@@ -35,6 +41,8 @@
     .name{width:100%;min-width:0;background:transparent;border:0;color:var(--text);font-weight:800;font-size:13px;outline:none;padding:2px}
     .remove{width:24px;height:24px;flex:0 0 24px;padding:0;border-radius:7px;border:1px solid var(--line);background:transparent;color:var(--muted);font-weight:900}
     .series-wins{position:absolute;right:0;top:0;min-width:32px;height:24px;display:flex;align-items:center;justify-content:center;gap:3px;border-radius:8px;background:rgba(255,255,255,.05);border:1px solid var(--line);font-size:11px;font-weight:800;color:#f4d77f}
+    .role-badge{position:absolute;left:6px;top:30px;z-index:3;padding:2px 6px;border-radius:999px;border:1px solid var(--line);background:rgba(7,17,31,.78);font-size:9px;font-weight:900;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+    .boss-card .role-badge{color:#f4d77f;border-color:#6a5b2d}
     .winner-card{outline:2px solid rgba(244,215,127,.65);box-shadow:0 0 0 2px rgba(244,215,127,.08) inset}
     .winner-trophy{position:absolute;left:50%;top:38%;transform:translate(-50%,-50%);font-size:clamp(34px,6vh,58px);filter:drop-shadow(0 4px 8px rgba(0,0,0,.35));pointer-events:none;z-index:2}
     .game-over-lock .controls,.game-over-lock .remove{pointer-events:none;opacity:.45}
@@ -72,7 +80,7 @@
 <body>
 <main class="app">
   <header>
-    <h1>Realm Counter</h1>
+    <div class="brandline"><h1>Realm Counter</h1><span class="version">v8</span></div>
     <div class="top-actions">
       <button id="undoBtn" class="btn secondary">↶</button>
       <button id="wakeBtn" class="btn secondary">☀</button>
@@ -94,6 +102,11 @@
 
 <dialog id="settingsDialog">
   <strong>Einstellungen</strong>
+  <div class="settings-row"><label for="modeSelect">Spielmodus</label>
+    <select id="modeSelect" class="btn">
+      <option value="ffa">FFA</option>
+      <option value="boss">Boss Mode</option>
+    </select></div>
   <div class="settings-row"><label for="startScore">Startpunkte</label><input id="startScore" type="number" inputmode="numeric" min="1" max="999" value="50"></div>
   <div class="settings-row"><span>Spieler</span><button id="addBtn" class="btn">+ Spieler</button></div>
   <p id="wakeStatus" class="hint"></p>
@@ -119,10 +132,10 @@
 </dialog>
 
 <script>
-const STORAGE_KEY="realm-counter-state-v7";
-const OLD_STORAGE_KEYS=["realm-counter-state-v6","realm-counter-state-v5","realm-counter-state-v4","realm-counter-state-v3","realm-counter-state-v2","realm-counter-state-v1"];
+const STORAGE_KEY="realm-counter-state-v8";
+const OLD_STORAGE_KEYS=["realm-counter-state-v7","realm-counter-state-v6","realm-counter-state-v5","realm-counter-state-v4","realm-counter-state-v3","realm-counter-state-v2","realm-counter-state-v1"];
 const MAX_PLAYERS=4, MIN_PLAYERS=2;
-const defaultState=()=>({startScore:50,players:[
+const defaultState=()=>({startScore:50,mode:"ffa",bossIndex:0,players:[
   {id:crypto.randomUUID(),name:"Spieler 1",score:50,wins:0},
   {id:crypto.randomUUID(),name:"Spieler 2",score:50,wins:0}
 ],history:[],log:[],gameOver:false,winnerIds:[]});
@@ -132,9 +145,9 @@ try{
   const saved=localStorage.getItem(STORAGE_KEY)||OLD_STORAGE_KEYS.map(k=>localStorage.getItem(k)).find(Boolean);
   state=saved?JSON.parse(saved):defaultState();
 }catch{state=defaultState()}
-state.history ||= []; state.log ||= []; state.gameOver ||= false; state.winnerIds ||= []; state.players=state.players.map(p=>({...p,wins:p.wins||0}));
+state.history ||= []; state.log ||= []; state.gameOver ||= false; state.winnerIds ||= []; state.mode ||= "ffa"; state.bossIndex ??= 0; state.players=state.players.map(p=>({...p,wins:p.wins||0}));
 
-const playersEl=document.getElementById("players"),startScoreEl=document.getElementById("startScore"),
+const playersEl=document.getElementById("players"),startScoreEl=document.getElementById("startScore"),modeSelect=document.getElementById("modeSelect"),
 addBtn=document.getElementById("addBtn"),undoBtn=document.getElementById("undoBtn"),wakeBtn=document.getElementById("wakeBtn"),
 logBtn=document.getElementById("logBtn"),settingsBtn=document.getElementById("settingsBtn"),newBtn=document.getElementById("newBtn"),
 wakeStatusEl=document.getElementById("wakeStatus"),logEl=document.getElementById("log"),clearLogBtn=document.getElementById("clearLogBtn"),
@@ -148,7 +161,7 @@ const deltaAccumulators=new Map();
 
 function esc(s){return String(s).replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[m]))}
 function save(){localStorage.setItem(STORAGE_KEY,JSON.stringify(state))}
-function snapshot(){state.history.push({players:state.players.map(p=>({...p})),startScore:state.startScore,log:state.log.map(x=>({...x})),gameOver:state.gameOver,winnerIds:[...(state.winnerIds||[])]});if(state.history.length>100)state.history.shift()}
+function snapshot(){state.history.push({players:state.players.map(p=>({...p})),startScore:state.startScore,mode:state.mode,bossIndex:state.bossIndex,log:state.log.map(x=>({...x})),gameOver:state.gameOver,winnerIds:[...(state.winnerIds||[])]});if(state.history.length>100)state.history.shift()}
 function addLog(player,delta,from,to,type="change"){state.log.unshift({id:crypto.randomUUID(),time:Date.now(),player:player.name,delta,from,to,type});if(state.log.length>200)state.log.length=200}
 function formatTime(ts){return new Date(ts).toLocaleTimeString([], {hour:"2-digit",minute:"2-digit",second:"2-digit"})}
 
@@ -163,9 +176,22 @@ function renderLog(){
 
 function render(){
   startScoreEl.value=state.startScore;
+  modeSelect.value=state.mode;
   playersEl.innerHTML="";
+  playersEl.className="players";
+
+  let renderPlayers=[...state.players];
+  if(state.mode==="boss" && state.players.length){
+    state.bossIndex=((state.bossIndex%state.players.length)+state.players.length)%state.players.length;
+    const boss=state.players[state.bossIndex];
+    renderPlayers=[boss,...state.players.filter(p=>p.id!==boss.id)];
+    playersEl.classList.add("boss-mode");
+    if(state.players.length===2)playersEl.classList.add("boss-two");
+    if(state.players.length===3)playersEl.classList.add("boss-three");
+  }
+
   for(let slot=0;slot<MAX_PLAYERS;slot++){
-    const player=state.players[slot];
+    const player=renderPlayers[slot];
     if(!player){
       const empty=document.createElement("div");
       empty.className="empty-slot";
@@ -174,12 +200,14 @@ function render(){
     }
     const card=document.createElement("article");
     const isWinner=(state.winnerIds||[]).includes(player.id);
-    card.className="card"+(player.score<=0?" dead game-over-lock":"")+(isWinner?" winner-card":"")+(state.gameOver?" game-over-lock":"");
+    const bossPlayer=state.mode==="boss"&&state.players[state.bossIndex]?.id===player.id;
+    card.className="card"+(player.score<=0?" dead game-over-lock":"")+(isWinner?" winner-card":"")+(state.gameOver?" game-over-lock":"")+(bossPlayer?" boss-card":"");
     card.innerHTML=`
+      ${state.mode==="boss"?`<div class="role-badge">${bossPlayer?"Boss":"Team"}</div>`:""}
       <div class="player-head">
         <input class="name" data-action="name" data-id="${player.id}" maxlength="24" value="${esc(player.name)}">
         <button class="remove" data-action="remove" data-id="${player.id}">×</button>
-        <div class="series-wins" title="Siege in dieser Serie">🏆 ${player.wins||0}</div>
+        <div class="series-wins" title="Serienpunkte">★ ${player.wins||0}</div>
       </div>
       <div class="score-wrap">
         ${isWinner?'<div class="winner-trophy" aria-hidden="true">🏆</div>':""}
@@ -215,50 +243,68 @@ function flashDelta(id,delta){
 }
 function checkForGameOver(){
   if(state.gameOver)return;
-  const active=state.players.filter(p=>p.score>0);
 
-  if(active.length>1){
-    render();
-    return;
+  if(state.mode==="boss"){
+    const boss=state.players[state.bossIndex];
+    const team=state.players.filter(p=>p.id!==boss.id);
+
+    if(boss.score<=0){
+      state.gameOver=true;
+      state.winnerIds=team.map(p=>p.id);
+      team.forEach(p=>p.wins=(p.wins||0)+1);
+      state.log.unshift({id:crypto.randomUUID(),time:Date.now(),player:"Spiel",delta:0,from:0,to:0,type:"gameover",text:`Team gewinnt gegen ${boss.name}`});
+      render();showGameOver();return;
+    }
+
+    if(team.every(p=>p.score<=0)){
+      state.gameOver=true;
+      state.winnerIds=[boss.id];
+      boss.wins=(boss.wins||0)+2;
+      state.log.unshift({id:crypto.randomUUID(),time:Date.now(),player:"Spiel",delta:0,from:0,to:0,type:"gameover",text:`${boss.name} gewinnt als Boss (+2)`});
+      render();showGameOver();return;
+    }
+
+    render();return;
   }
+
+  const active=state.players.filter(p=>p.score>0);
+  if(active.length>1){render();return}
 
   if(active.length===1){
     const winner=active[0];
     state.gameOver=true;
     state.winnerIds=[winner.id];
     winner.wins=(winner.wins||0)+1;
-    state.log.unshift({
-      id:crypto.randomUUID(),time:Date.now(),player:"Spiel",
-      delta:0,from:0,to:0,type:"gameover",
-      text:`${winner.name} gewinnt`
-    });
-    render();
-    showGameOver();
-    return;
+    state.log.unshift({id:crypto.randomUUID(),time:Date.now(),player:"Spiel",delta:0,from:0,to:0,type:"gameover",text:`${winner.name} gewinnt`});
+    render();showGameOver();return;
   }
 
-  // Falls theoretisch alle gleichzeitig auf 0 landen: kein Sieger.
   state.gameOver=true;
   state.winnerIds=[];
-  state.log.unshift({
-    id:crypto.randomUUID(),time:Date.now(),player:"Spiel",
-    delta:0,from:0,to:0,type:"gameover",
-    text:"Partie endet ohne Sieger"
-  });
-  render();
-  showGameOver();
+  state.log.unshift({id:crypto.randomUUID(),time:Date.now(),player:"Spiel",delta:0,from:0,to:0,type:"gameover",text:"Partie endet ohne Sieger"});
+  render();showGameOver();
 }
 
 function showGameOver(){
   if(!state.gameOver)return;
   const winners=state.players.filter(p=>(state.winnerIds||[]).includes(p.id));
-  gameOverWinner.textContent=winners.length===1?`${winners[0].name} gewinnt die Partie.`:"Partie beendet.";
+  if(state.mode==="boss"){
+    const boss=state.players[state.bossIndex];
+    if(winners.length===1&&winners[0].id===boss?.id){
+      gameOverWinner.textContent=`${boss.name} gewinnt als Boss und erhält 2 Punkte.`;
+    }else{
+      gameOverWinner.textContent="Das Team gewinnt. Alle Nicht-Boss-Spieler erhalten je 1 Punkt.";
+    }
+  }else{
+    gameOverWinner.textContent=winners.length===1?`${winners[0].name} gewinnt die Partie.`:"Partie beendet.";
+  }
   if(!gameOverDialog.open)gameOverDialog.showModal();
 }
 
 function startNextGame(){
   state.gameOver=false;
   state.winnerIds=[];
+  if(state.mode==="boss"&&state.players.length)state.bossIndex=(state.bossIndex+1)%state.players.length;
   state.players=state.players.map(p=>({...p,score:state.startScore}));
   state.history=[];
   state.log.unshift({id:crypto.randomUUID(),time:Date.now(),player:"Serie",delta:0,from:0,to:0,type:"newgame"});
@@ -270,6 +316,7 @@ function startNextGame(){
 function endSeries(){
   state.gameOver=false;
   state.winnerIds=[];
+  state.bossIndex=0;
   state.players=state.players.map(p=>({...p,score:state.startScore,wins:0}));
   state.history=[];
   state.log=[];
@@ -328,10 +375,23 @@ scoreForm.addEventListener("submit",()=>{
   editingPlayerId=null
 });
 
-undoBtn.addEventListener("click",()=>{const prev=state.history.pop();if(!prev)return;state.players=prev.players;state.startScore=prev.startScore;state.log=prev.log;state.gameOver=prev.gameOver;state.winnerIds=prev.winnerIds||[];if(gameOverDialog.open)gameOverDialog.close();render();if(state.gameOver)showGameOver()});
+undoBtn.addEventListener("click",()=>{const prev=state.history.pop();if(!prev)return;state.players=prev.players;state.startScore=prev.startScore;state.mode=prev.mode||"ffa";state.bossIndex=prev.bossIndex||0;state.log=prev.log;state.gameOver=prev.gameOver;state.winnerIds=prev.winnerIds||[];if(gameOverDialog.open)gameOverDialog.close();render();if(state.gameOver)showGameOver()});
 newBtn.addEventListener("click",()=>{if(!confirm(`Aktuelle Partie zurücksetzen? Die Serie bleibt erhalten.`))return;snapshot();state.gameOver=false;state.winnerIds=[];state.players=state.players.map((p,i)=>({...p,name:p.name||`Spieler ${i+1}`,score:state.startScore}));state.log=[];if(gameOverDialog.open)gameOverDialog.close();render()});
 addBtn.addEventListener("click",addPlayer);
 startScoreEl.addEventListener("change",()=>{state.startScore=Math.max(1,Math.min(999,Number(startScoreEl.value)||50));save();render()});
+modeSelect.addEventListener("change",()=>{
+  const next=modeSelect.value==="boss"?"boss":"ffa";
+  if(next===state.mode)return;
+  state.mode=next;
+  state.bossIndex=0;
+  state.gameOver=false;
+  state.winnerIds=[];
+  state.players=state.players.map(p=>({...p,score:state.startScore,wins:0}));
+  state.history=[];
+  state.log=[];
+  save();
+  render();
+});
 
 logBtn.addEventListener("click",()=>{renderLog();logDialog.showModal()});
 document.getElementById("closeLogBtn").addEventListener("click",()=>logDialog.close());
