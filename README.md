@@ -34,3 +34,10 @@
 ## Handy-freundliche Repository-Struktur
 Alle Dateien liegen direkt im Hauptverzeichnis des GitHub-Repositories.
 Ein `assets`-Ordner ist nicht erforderlich.
+
+## v0.14
+- Fraktionsname-Dropdown aus den Spielerkarten entfernt.
+- Das Fraktionslogo ist jetzt selbst die Auswahl-Schaltfläche.
+- Antippen des Logos öffnet eine kompakte Logo-Auswahl.
+- Bereits von anderen Spielern gewählte Fraktionen sind deaktiviert.
+- Spielername ist transparenter und verdeckt das Fraktions-Artwork deutlich weniger.

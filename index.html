@@ -6,7 +6,7 @@
   <meta name="theme-color" content="#06111f" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-  <title>Star Realm Counter v.0.13</title>
+  <title>Star Realm Counter v.0.14</title>
   <link rel="manifest" href="manifest.webmanifest" />
   <style>
     :root{
@@ -133,32 +133,28 @@
         linear-gradient(180deg,rgba(1,7,13,.10),rgba(1,7,13,.48) 42%,rgba(1,7,13,.86) 78%,rgba(1,7,13,.96)),
         linear-gradient(90deg,color-mix(in srgb,var(--accent) 11%,transparent),transparent 45%);
     }
-    .faction-icon{
-      width:28px;height:28px;border-radius:50%;object-fit:cover;display:block;
-      border:1px solid color-mix(in srgb,var(--accent) 78%,#fff 5%);
-      box-shadow:0 0 10px color-mix(in srgb,var(--accent) 38%,transparent);
-      background:#02070c;
-    }
-    .faction-picker{
-      min-width:0;display:grid;grid-template-columns:30px minmax(0,1fr);gap:5px;align-items:center;
-    }
     .card-top{grid-template-columns:minmax(0,1fr) auto}
     .identity,.score-wrap,.controls,.card-top,.role-badge{position:relative;z-index:2}
 
-    .faction-select{
-      min-width:0;width:100%;border:1px solid color-mix(in srgb,var(--accent) 65%,#233a4a);
-      border-radius:8px;background:#061522;color:#eef8ff;font-weight:850;font-size:12px;padding:6px 28px 6px 8px;
-      appearance:none;
-      background-image:linear-gradient(45deg,transparent 50%,#a8c8da 50%),linear-gradient(135deg,#a8c8da 50%,transparent 50%);
-      background-position:calc(100% - 12px) 50%,calc(100% - 7px) 50%;background-size:5px 5px;background-repeat:no-repeat
+    .faction-logo-btn{
+      width:34px;height:34px;padding:0;border-radius:50%;
+      border:1px solid color-mix(in srgb,var(--accent) 78%,#fff 5%);
+      background:#02070c;overflow:hidden;
+      box-shadow:0 0 12px color-mix(in srgb,var(--accent) 38%,transparent);
     }
+    .faction-logo-btn img{width:100%;height:100%;object-fit:cover;display:block}
     .series-points{
       min-width:34px;padding:0 7px;height:30px;border-radius:8px;border:1px solid color-mix(in srgb,var(--accent) 60%,#2a4255);
       display:flex;align-items:center;justify-content:center;gap:3px;background:rgba(3,11,18,.72);font-size:11px;font-weight:900;color:#f7dc76
     }
 
-    .identity{position:relative;z-index:2;display:grid;grid-template-columns:minmax(0,1fr) auto;gap:4px;padding:0 5px 4px}
-    .name{width:100%;min-width:0;border:1px solid #29465e;border-radius:8px;background:#071624;color:#f4f7fb;font-weight:800;font-size:12px;padding:5px 7px;outline:none}
+    .identity{position:relative;z-index:2;display:grid;grid-template-columns:minmax(0,1fr) auto;gap:4px;padding:0 5px 4px;align-items:center}
+    .name{
+      width:100%;min-width:0;border:0;border-bottom:1px solid color-mix(in srgb,var(--accent) 45%,#29465e);
+      border-radius:0;background:rgba(2,8,14,.28);color:#f4f7fb;font-weight:850;font-size:12px;
+      padding:3px 5px;outline:none;text-shadow:0 1px 3px #000;
+    }
+    .name:focus{background:rgba(2,8,14,.62);border-bottom-color:var(--accent)}
     .remove{width:30px;border:1px solid #29465e;border-radius:8px;background:#071624;color:#9fb4c4;font-weight:900}
 
     .score-wrap{min-height:0;display:flex;align-items:center;justify-content:center;position:relative;z-index:2}
@@ -199,6 +195,22 @@
     }
     .round-end-btn.show{display:flex}.round-end-btn.restart{border-color:#3d7154}.round-end-btn.close{border-color:#74414a}
 
+
+    .faction-menu{
+      position:absolute;z-index:30;display:none;
+      grid-template-columns:repeat(4,48px);gap:8px;padding:9px;
+      border:1px solid #31566f;border-radius:12px;background:rgba(4,13,22,.97);
+      box-shadow:0 12px 30px rgba(0,0,0,.55);backdrop-filter:blur(10px);
+    }
+    .faction-menu.show{display:grid}
+    .faction-choice{
+      width:48px;height:48px;padding:0;border-radius:50%;overflow:hidden;
+      border:1px solid #35576c;background:#02070c
+    }
+    .faction-choice img{width:100%;height:100%;object-fit:cover;display:block}
+    .faction-choice[disabled]{opacity:.25;filter:grayscale(1)}
+    .faction-choice.selected{outline:2px solid #fff}
+
     dialog{border:1px solid #255675;background:#071522;color:#eef7fc;border-radius:14px;width:min(92vw,420px);max-height:82dvh;overflow:auto;box-shadow:0 18px 40px rgba(0,0,0,.55)}
     dialog::backdrop{background:rgba(0,0,0,.74)}
     .dialog-row,.settings-row{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-top:10px}
@@ -226,7 +238,7 @@
   <header class="topbar">
     <button id="menuBtn" class="icon-btn" aria-label="Menü">☰</button>
     <div class="title-wrap">
-      <h1 class="title">Star Realm Counter v.0.13</h1>
+      <h1 class="title">Star Realm Counter v.0.14</h1>
       <div class="subtitle">Trade · Attack · Dominate</div>
     </div>
     <button id="settingsBtn" class="icon-btn" aria-label="Einstellungen">⚙</button>
@@ -253,6 +265,9 @@
   </footer>
 </main>
 
+
+<div id="factionMenu" class="faction-menu" role="menu" aria-label="Fraktion wählen"></div>
+
 <dialog id="scoreDialog">
   <form method="dialog" id="scoreForm">
     <strong>Punktestand setzen</strong>
@@ -278,8 +293,8 @@
 </dialog>
 
 <script>
-const STORAGE_KEY="realm-counter-state-v13";
-const OLD_STORAGE_KEYS=["realm-counter-state-v12","realm-counter-state-v11","realm-counter-state-v10","realm-counter-state-v9","realm-counter-state-v8","realm-counter-state-v7","realm-counter-state-v6","realm-counter-state-v5","realm-counter-state-v4","realm-counter-state-v3","realm-counter-state-v2","realm-counter-state-v1"];
+const STORAGE_KEY="realm-counter-state-v14";
+const OLD_STORAGE_KEYS=["realm-counter-state-v13","realm-counter-state-v12","realm-counter-state-v11","realm-counter-state-v10","realm-counter-state-v9","realm-counter-state-v8","realm-counter-state-v7","realm-counter-state-v6","realm-counter-state-v5","realm-counter-state-v4","realm-counter-state-v3","realm-counter-state-v2","realm-counter-state-v1"];
 const MAX_PLAYERS=4,MIN_PLAYERS=2;
 const FACTIONS=[
   {id:"empire",name:"Star Empire",className:"faction-empire",art:"./empire_art.webp",icon:"./empire_icon.webp"},
@@ -309,7 +324,7 @@ ffaBtn=document.getElementById("ffaBtn"),bossBtn=document.getElementById("bossBt
 wakeStatusEl=document.getElementById("wakeStatus"),logEl=document.getElementById("log"),clearLogBtn=document.getElementById("clearLogBtn"),
 scoreDialog=document.getElementById("scoreDialog"),scoreInput=document.getElementById("scoreInput"),scoreForm=document.getElementById("scoreForm"),
 settingsDialog=document.getElementById("settingsDialog"),logDialog=document.getElementById("logDialog"),
-continueSeriesBtn=document.getElementById("continueSeriesBtn"),endSeriesBtn=document.getElementById("endSeriesBtn");
+continueSeriesBtn=document.getElementById("continueSeriesBtn"),endSeriesBtn=document.getElementById("endSeriesBtn"),factionMenu=document.getElementById("factionMenu");
 
 let editingPlayerId=null,wakeLock=null,wakeRequested=false;
 const deltaAccumulators=new Map();
@@ -336,12 +351,24 @@ function renderLog(){
     return `<div class="log-entry"><span class="log-time">${formatTime(e.time)}</span><span>${middle}</span><span class="log-change ${cls}">${e.delta?sign+e.delta:""}</span></div>`
   }).join("")
 }
-function factionOptions(player){
-  const usedByOthers=new Set(state.players.filter(p=>p.id!==player.id).map(p=>p.faction));
-  return FACTIONS.map(f=>`<option value="${f.id}" ${f.id===player.faction?"selected":""} ${usedByOthers.has(f.id)?"disabled":""}>${f.name}</option>`).join("");
-}
 function factionClass(id){return FACTIONS.find(f=>f.id===id)?.className||""}
 function factionData(id){return FACTIONS.find(f=>f.id===id)||FACTIONS[0]}
+let factionMenuPlayerId=null;
+function closeFactionMenu(){factionMenu.classList.remove("show");factionMenuPlayerId=null}
+function openFactionMenu(player,anchor){
+  factionMenuPlayerId=player.id;
+  const usedByOthers=new Set(state.players.filter(p=>p.id!==player.id).map(p=>p.faction));
+  factionMenu.innerHTML=FACTIONS.map(f=>`
+    <button type="button" class="faction-choice ${f.id===player.faction?"selected":""}" data-faction="${f.id}" ${usedByOthers.has(f.id)?"disabled":""} title="${f.name}" aria-label="${f.name}">
+      <img src="${f.icon}" alt="">
+    </button>`).join("");
+  const r=anchor.getBoundingClientRect();
+  const menuWidth=4*48+3*8+18;
+  let left=Math.min(window.innerWidth-menuWidth-8,Math.max(8,r.left));
+  let top=Math.min(window.innerHeight-70,r.bottom+5);
+  factionMenu.style.left=`${left}px`;factionMenu.style.top=`${top}px`;
+  factionMenu.classList.add("show");
+}
 
 function render(){
   startScoreEl.value=state.startScore;
@@ -377,10 +404,9 @@ function render(){
       <div class="faction-art" style="background-image:url('${faction.art}')"></div>
       ${state.mode==="boss"?`<div class="role-badge">${bossPlayer?"Boss":"Team"}</div>`:""}
       <div class="card-top">
-        <div class="faction-picker">
-          <img class="faction-icon" src="${faction.icon}" alt="" aria-hidden="true">
-          <select class="faction-select" data-action="faction" data-id="${player.id}">${factionOptions(player)}</select>
-        </div>
+        <button class="faction-logo-btn" data-action="faction-menu" data-id="${player.id}" title="${faction.name}" aria-label="Fraktion wählen: ${faction.name}">
+          <img src="${faction.icon}" alt="">
+        </button>
         <div class="series-points" title="Serienpunkte">★ ${player.wins||0}</div>
       </div>
       <div class="identity">
@@ -495,6 +521,7 @@ function setMode(next){
 playersEl.addEventListener("click",e=>{
   const btn=e.target.closest("[data-action]");if(!btn)return;
   if(btn.dataset.action==="add-slot"){addPlayer();return}
+  if(btn.dataset.action==="faction-menu"){const p=state.players.find(p=>p.id===btn.dataset.id);if(p)openFactionMenu(p,btn);return}
   const id=btn.dataset.id,player=state.players.find(p=>p.id===id);if(!player)return;
   if((state.gameOver||player.score<=0)&&!["name","faction"].includes(btn.dataset.action))return;
   if(btn.dataset.action==="change")changeScore(player,Number(btn.dataset.delta));
@@ -513,14 +540,21 @@ playersEl.addEventListener("input",e=>{
   if(!e.target.matches('[data-action="name"]'))return;
   const p=state.players.find(p=>p.id===e.target.dataset.id);if(p){p.name=e.target.value;save()}
 });
-playersEl.addEventListener("change",e=>{
-  if(!e.target.matches('[data-action="faction"]'))return;
-  const p=state.players.find(p=>p.id===e.target.dataset.id);if(!p)return;
-  const chosen=e.target.value;
-  const taken=state.players.some(other=>other.id!==p.id&&other.faction===chosen);
-  if(taken){render();return}
-  p.faction=chosen;render();
+
+
+factionMenu.addEventListener("click",e=>{
+  const btn=e.target.closest("[data-faction]");if(!btn||btn.disabled)return;
+  const player=state.players.find(p=>p.id===factionMenuPlayerId);if(!player)return closeFactionMenu();
+  const chosen=btn.dataset.faction;
+  if(state.players.some(other=>other.id!==player.id&&other.faction===chosen))return;
+  player.faction=chosen;closeFactionMenu();render();
 });
+document.addEventListener("click",e=>{
+  if(!factionMenu.classList.contains("show"))return;
+  if(factionMenu.contains(e.target)||e.target.closest('[data-action="faction-menu"]'))return;
+  closeFactionMenu();
+});
+window.addEventListener("resize",closeFactionMenu);
 
 scoreForm.addEventListener("submit",()=>{
   if(scoreDialog.returnValue==="cancel")return;
