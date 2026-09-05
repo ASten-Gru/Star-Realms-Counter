@@ -1,4 +1,4 @@
-# Star Realm Counter v0.19
+# Star Realm Counter v0.20
 
 Mobile, installierbare PWA zum Zählen von Authority/Punkten und Serienpunkten bei Star-Realms-artigen Kartenspielen.
 
@@ -80,9 +80,11 @@ Es stehen vier Fraktionen zur Verfügung:
 - Trade Federation – Blau
 - Blob – Grün
 
-Jede Fraktion kann innerhalb einer Partie nur einmal vergeben werden.
+Im FFA- und Boss-Modus kann jede Fraktion innerhalb einer Partie nur einmal vergeben werden.
 
-Die Fraktion wird direkt über das runde Fraktionslogo ausgewählt. Beim Antippen öffnet sich eine kompakte Logo-Auswahl. Bereits verwendete Fraktionen sind dort deaktiviert.
+Im Team-Modus dürfen Fraktionen mehrfach vorkommen. Dabei gilt eine besondere Team-Regel: Haben beide Spieler eines Teams dieselbe Fraktion gewählt, ist diese Fraktion für beide Spieler des gegnerischen Teams gesperrt. Solange eine Fraktion in einem Team nur einmal vorkommt, darf sie auch vom anderen Team gewählt werden.
+
+Die Fraktion wird direkt über das runde Fraktionslogo ausgewählt. Beim Antippen öffnet sich eine kompakte Logo-Auswahl. Nicht erlaubte Fraktionen werden dort deaktiviert.
 
 Die verwendeten Sci-Fi-Artworks und Fraktionssymbole wurden für dieses Projekt erstellt und sind keine offiziellen Star-Realms-Grafiken.
 
@@ -206,4 +208,4 @@ Nach dem Ersetzen geänderter Dateien und dem Commit wird die neue Version über
 
 ## Version
 
-Aktueller Stand: **v0.19**
+Aktueller Stand: **v0.20**

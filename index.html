@@ -6,7 +6,7 @@
   <meta name="theme-color" content="#06111f" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-  <title>Star Realm Counter v.0.19</title>
+  <title>Star Realm Counter v.0.20</title>
   <link rel="manifest" href="manifest.webmanifest" />
   <style>
     :root{
@@ -263,7 +263,7 @@
   <header class="topbar">
     <button id="menuBtn" class="icon-btn" aria-label="Menü">☰</button>
     <div class="title-wrap">
-      <h1 class="title">Star Realm Counter v.0.19</h1>
+      <h1 class="title">Star Realm Counter v.0.20</h1>
       <div class="subtitle">Trade · Attack · Dominate</div>
     </div>
     <button id="settingsBtn" class="icon-btn" aria-label="Einstellungen">⚙</button>
@@ -319,7 +319,7 @@
 </dialog>
 
 <script>
-const STORAGE_KEY="realm-counter-state-v19";
+const STORAGE_KEY="realm-counter-state-v20";
 const OLD_STORAGE_KEYS=["realm-counter-state-v13","realm-counter-state-v12","realm-counter-state-v11","realm-counter-state-v10","realm-counter-state-v9","realm-counter-state-v8","realm-counter-state-v7","realm-counter-state-v6","realm-counter-state-v5","realm-counter-state-v4","realm-counter-state-v3","realm-counter-state-v2","realm-counter-state-v1"];
 const MAX_PLAYERS=4,MIN_PLAYERS=2;
 const FACTIONS=[
@@ -359,6 +359,12 @@ function esc(s){return String(s).replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",
 function save(){localStorage.setItem(STORAGE_KEY,JSON.stringify(state))}
 function snapshot(){state.history.push({players:state.players.map(p=>({...p})),startScore:state.startScore,mode:state.mode,bossIndex:state.bossIndex,log:state.log.map(x=>({...x})),gameOver:state.gameOver,winnerIds:[...(state.winnerIds||[])],teamScores:[...(state.teamScores||[75,75])]});if(state.history.length>100)state.history.shift()}
 function normalizeFactions(){
+  if(state.mode==="team"){
+    state.players.forEach((p,i)=>{
+      if(!FACTIONS.some(f=>f.id===p.faction))p.faction=FACTIONS[i%FACTIONS.length].id;
+    });
+    return;
+  }
   const used=new Set();
   state.players.forEach((p,i)=>{
     if(!FACTIONS.some(f=>f.id===p.faction)||used.has(p.faction)){
@@ -383,11 +389,21 @@ let factionMenuPlayerId=null;
 function closeFactionMenu(){factionMenu.classList.remove("show");factionMenuPlayerId=null}
 function openFactionMenu(player,anchor){
   factionMenuPlayerId=player.id;
-  const usedByOthers=new Set(state.players.filter(p=>p.id!==player.id).map(p=>p.faction));
-  factionMenu.innerHTML=FACTIONS.map(f=>`
-    <button type="button" class="faction-choice ${f.id===player.faction?"selected":""}" data-faction="${f.id}" ${usedByOthers.has(f.id)?"disabled":""} title="${f.name}" aria-label="${f.name}">
+  const playerTeam=state.mode==="team"?teamIndexForPlayer(player.id):-1;
+  factionMenu.innerHTML=FACTIONS.map(f=>{
+    let disabled=false;
+    if(state.mode==="team"){
+      const otherTeam=playerTeam===0?1:0;
+      const otherMembers=state.players.filter(p=>teamIndexForPlayer(p.id)===otherTeam);
+      disabled=otherMembers.length===2&&otherMembers.every(p=>p.faction===f.id);
+    }else{
+      disabled=state.players.some(p=>p.id!==player.id&&p.faction===f.id);
+    }
+    return `
+    <button type="button" class="faction-choice ${f.id===player.faction?"selected":""}" data-faction="${f.id}" ${disabled?"disabled":""} title="${f.name}" aria-label="${f.name}">
       <img src="${f.icon}" alt="">
-    </button>`).join("");
+    </button>`;
+  }).join("");
   const r=anchor.getBoundingClientRect();
   const menuWidth=4*48+3*8+18;
   let left=Math.min(window.innerWidth-menuWidth-8,Math.max(8,r.left));
