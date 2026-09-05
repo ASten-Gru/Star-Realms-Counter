@@ -1,7 +1,7 @@
 {
   "name": "Realm Counter",
   "short_name": "Realm Counter",
-  "description": "Ein einfacher lokaler Punktezähler für Kartenspiele.",
+  "description": "Punktezähler für Kartenspiele",
   "start_url": "./",
   "display": "standalone",
   "background_color": "#07111f",

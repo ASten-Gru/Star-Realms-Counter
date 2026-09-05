@@ -10,487 +10,253 @@
   <link rel="manifest" href="manifest.webmanifest" />
   <style>
     :root{
-      color-scheme: dark;
-      --bg:#07111f;
-      --panel:#101a2e;
-      --panel2:#16233d;
-      --text:#f4f7fb;
-      --muted:#9badc6;
-      --danger:#ff6b6b;
-      --ok:#63d297;
-      --line:#263754;
-      --shadow:0 12px 28px rgba(0,0,0,.25);
+      color-scheme:dark;
+      --bg:#07111f;--panel:#101a2e;--panel2:#16233d;--text:#f4f7fb;
+      --muted:#9badc6;--danger:#ff6b6b;--ok:#63d297;--line:#263754;
     }
     *{box-sizing:border-box}
-    html,body{margin:0;min-height:100%;background:radial-gradient(circle at top,#12203a 0,#07111f 55%);font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:var(--text)}
+    html,body{margin:0;width:100%;height:100%;overflow:hidden;background:var(--bg);color:var(--text);
+      font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
     body{min-height:100dvh;padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left)}
-    button,input{font:inherit}
-    button{touch-action:manipulation}
-    .app{max-width:1100px;margin:0 auto;padding:14px}
-    header{display:flex;gap:12px;align-items:center;justify-content:space-between;margin-bottom:14px}
-    .brand h1{font-size:20px;line-height:1.1;margin:0}
-    .brand p{margin:3px 0 0;color:var(--muted);font-size:12px}
-    .top-actions{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end}
-    .btn{border:1px solid var(--line);background:var(--panel2);color:var(--text);padding:9px 12px;border-radius:12px;font-weight:700;cursor:pointer}
-    .btn:active{transform:translateY(1px)}
-    .btn.secondary{background:transparent}
-    .btn.danger{border-color:#5d2b36;color:#ffd5d8}
-    .players{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
-    .card{position:relative;background:linear-gradient(180deg,rgba(22,35,61,.97),rgba(14,25,45,.97));border:1px solid var(--line);border-radius:20px;padding:14px;box-shadow:var(--shadow);min-height:300px;display:flex;flex-direction:column;overflow:hidden}
-    .card.dead{opacity:.65;filter:saturate(.5)}
-    .player-head{display:flex;gap:8px;align-items:center}
-    .name{width:100%;background:transparent;border:0;border-bottom:1px solid transparent;color:var(--text);font-weight:800;font-size:17px;outline:none;padding:6px}
-    .name:focus{border-bottom-color:#6079a5}
-    .remove{width:36px;height:36px;border-radius:10px;border:1px solid var(--line);background:transparent;color:var(--muted);font-weight:900}
-    .score-wrap{display:flex;align-items:center;justify-content:center;flex:1;min-height:110px;position:relative}
-    .score{border:0;background:transparent;color:var(--text);font-size:clamp(54px,10vw,92px);font-weight:900;line-height:1;letter-spacing:-.05em;padding:8px 14px;border-radius:18px;cursor:pointer}
+    button,input{font:inherit} button{touch-action:manipulation}
+    .app{height:100dvh;display:grid;grid-template-rows:auto minmax(0,1fr);gap:5px;padding:5px;overflow:hidden}
+    header{display:flex;align-items:center;justify-content:space-between;gap:6px;min-height:34px}
+    h1{font-size:15px;line-height:1;margin:0;white-space:nowrap}
+    .top-actions{display:flex;gap:4px;min-width:0}
+    .btn{border:1px solid var(--line);background:var(--panel2);color:var(--text);padding:6px 8px;border-radius:9px;font-weight:750;font-size:11px;white-space:nowrap}
+    .btn.secondary{background:transparent}.btn.danger{border-color:#5d2b36;color:#ffd5d8}
+    .players{min-height:0;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));grid-template-rows:repeat(2,minmax(0,1fr));gap:5px}
+    .card{position:relative;min-width:0;min-height:0;background:linear-gradient(180deg,#16233d,#0e192d);
+      border:1px solid var(--line);border-radius:13px;padding:6px;display:grid;grid-template-rows:auto minmax(0,1fr) auto;overflow:hidden}
+    .card.dead{opacity:.62;filter:saturate(.55)}
+    .empty-slot{border:1px dashed var(--line);border-radius:13px;display:flex;align-items:center;justify-content:center}
+    .empty-slot button{font-size:13px}
+    .player-head{display:flex;align-items:center;gap:3px;min-width:0}
+    .name{width:100%;min-width:0;background:transparent;border:0;color:var(--text);font-weight:800;font-size:13px;outline:none;padding:2px}
+    .remove{width:24px;height:24px;flex:0 0 24px;padding:0;border-radius:7px;border:1px solid var(--line);background:transparent;color:var(--muted);font-weight:900}
+    .score-wrap{min-height:0;display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden}
+    .score{border:0;background:transparent;color:var(--text);font-size:clamp(38px,8.8vh,78px);font-weight:900;line-height:.92;letter-spacing:-.05em;padding:2px 6px}
     .score.zero{color:var(--danger)}
-    .delta-float{position:absolute;left:50%;top:10px;transform:translateX(-50%);font-size:30px;font-weight:900;pointer-events:none;opacity:0}
-    .delta-float.show{animation:fadeDelta 3s ease forwards}
-    .delta-float.plus{color:var(--ok)}
-    .delta-float.minus{color:var(--danger)}
-    @keyframes fadeDelta{
-      0%{opacity:0;transform:translate(-50%,8px) scale(.9)}
-      12%{opacity:1;transform:translate(-50%,0) scale(1)}
-      70%{opacity:1}
-      100%{opacity:0;transform:translate(-50%,-10px) scale(.96)}
-    }
-    .controls{display:grid;grid-template-columns:92px 1fr 92px;gap:8px;align-items:stretch}
-    .score-btn{border:1px solid var(--line);background:#0c1629;color:var(--text);padding:14px 6px;border-radius:14px;font-size:22px;font-weight:900}
-    .score-btn.plus{background:#10291f;border-color:#214b3a;color:#bff4d6}
-    .score-btn.minus{background:#2b151a;border-color:#553039;color:#ffd0d4}
-    .custom-change{display:grid;grid-template-columns:1fr 1fr;gap:6px}
-    .custom-input{width:100%;min-width:0;background:#091321;color:var(--text);border:1px solid var(--line);border-radius:12px;padding:10px;text-align:center;font-size:19px;font-weight:800}
-    .apply-btn{border:1px solid var(--line);background:var(--panel2);color:var(--text);border-radius:12px;font-weight:800}
-    .meta{display:flex;justify-content:space-between;gap:8px;margin-top:10px;color:var(--muted);font-size:12px}
-    .setup,.log-panel{margin-top:14px;background:rgba(16,26,46,.8);border:1px solid var(--line);border-radius:16px;padding:12px}
-    .setup{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
-    .setup label{color:var(--muted);font-size:13px}
-    .setup input{width:86px;background:#091321;color:var(--text);border:1px solid var(--line);border-radius:10px;padding:9px}
-    .wake-status{color:var(--muted);font-size:12px}
-    .log-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:8px}
-    .log-head h2{font-size:15px;margin:0}
-    .log{display:flex;flex-direction:column;gap:6px;max-height:220px;overflow:auto}
-    .log-entry{display:grid;grid-template-columns:70px 1fr auto;gap:8px;padding:8px 0;border-top:1px solid rgba(38,55,84,.65);font-size:13px}
-    .log-entry:first-child{border-top:0}
-    .log-time{color:var(--muted)}
-    .log-change.plus{color:var(--ok);font-weight:800}
-    .log-change.minus{color:var(--danger);font-weight:800}
-    dialog{border:1px solid var(--line);background:#0e192c;color:var(--text);border-radius:18px;box-shadow:var(--shadow);width:min(92vw,380px)}
-    dialog::backdrop{background:rgba(0,0,0,.65)}
-    .dialog-row{display:flex;gap:8px;align-items:center;margin-top:14px}
-    .dialog-row input{flex:1;background:#091321;color:var(--text);border:1px solid var(--line);border-radius:12px;padding:12px;font-size:20px;font-weight:800}
-    .dialog-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:14px}
-    .hint{color:var(--muted);font-size:12px;margin:8px 0 0}
-    @media (max-width:700px){
-      .players{grid-template-columns:1fr}
-      .card{min-height:270px}
-      header{align-items:flex-start}
-      .brand p{display:none}
-      .controls{grid-template-columns:76px 1fr 76px}
-    }
-    @media (orientation:landscape) and (max-height:600px){
-      .players{grid-template-columns:repeat(2,minmax(0,1fr))}
-      .card{min-height:230px}
-      .score-wrap{min-height:75px}
-      .score{font-size:56px}
-      .score-btn{padding:10px 6px}
-    }
+    .delta-float{position:absolute;left:50%;top:0;transform:translateX(-50%);font-size:clamp(17px,3vh,25px);font-weight:900;opacity:0;pointer-events:none}
+    .delta-float.show{animation:fadeDelta 3s ease forwards}.delta-float.plus{color:var(--ok)}.delta-float.minus{color:var(--danger)}
+    @keyframes fadeDelta{0%{opacity:0;transform:translate(-50%,5px)}12%{opacity:1;transform:translate(-50%,0)}70%{opacity:1}100%{opacity:0;transform:translate(-50%,-8px)}}
+    .controls{display:grid;grid-template-columns:42px minmax(0,1fr) 42px;gap:3px}
+    .score-btn{border:1px solid var(--line);padding:7px 1px;border-radius:9px;font-size:17px;font-weight:900}
+    .score-btn.minus,.custom-minus{background:#2b151a;border-color:#553039;color:#ffd0d4}
+    .score-btn.plus,.custom-plus{background:#10291f;border-color:#214b3a;color:#bff4d6}
+    .custom-change{min-width:0;display:grid;grid-template-columns:31px minmax(0,1fr) 31px;gap:3px}
+    .custom-input{width:100%;min-width:0;background:#091321;color:var(--text);border:1px solid var(--line);border-radius:8px;padding:5px 2px;text-align:center;font-size:14px;font-weight:800}
+    .apply-btn{border:1px solid var(--line);border-radius:8px;padding:0;font-size:17px;font-weight:900}
+    dialog{border:1px solid var(--line);background:#0e192c;color:var(--text);border-radius:15px;width:min(92vw,420px);max-height:82dvh;overflow:auto}
+    dialog::backdrop{background:rgba(0,0,0,.7)}
+    .dialog-row{display:flex;gap:8px;align-items:center;margin-top:12px}.dialog-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:14px}
+    dialog input{background:#091321;color:var(--text);border:1px solid var(--line);border-radius:9px;padding:9px;font-weight:800}
+    .settings-row{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-top:10px}
+    .hint{color:var(--muted);font-size:12px}
+    .log{display:flex;flex-direction:column;gap:4px;max-height:60dvh;overflow:auto}
+    .log-entry{display:grid;grid-template-columns:58px minmax(0,1fr) auto;gap:7px;padding:6px 0;border-top:1px solid rgba(38,55,84,.7);font-size:12px}
+    .log-entry:first-child{border-top:0}.log-time{color:var(--muted)}.log-change.plus{color:var(--ok);font-weight:800}.log-change.minus{color:var(--danger);font-weight:800}
+    @media(max-height:650px){.app{padding:3px;gap:3px}header{min-height:29px}.btn{padding:5px 6px}.card{padding:4px}.score{font-size:clamp(31px,7.4vh,55px)}.controls{grid-template-columns:37px minmax(0,1fr) 37px}.custom-change{grid-template-columns:27px minmax(0,1fr) 27px}.score-btn{padding:4px 1px}.custom-input{padding:3px 1px;font-size:12px}}
+    @media(max-width:390px){h1{font-size:13px}.btn{font-size:10px;padding:5px 6px}.controls{grid-template-columns:38px minmax(0,1fr) 38px}.custom-change{grid-template-columns:28px minmax(0,1fr) 28px}}
   </style>
 </head>
 <body>
-  <main class="app">
-    <header>
-      <div class="brand">
-        <h1>Realm Counter</h1>
-        <p>Lokaler Punktezähler für Kartenspiele</p>
+<main class="app">
+  <header>
+    <h1>Realm Counter</h1>
+    <div class="top-actions">
+      <button id="undoBtn" class="btn secondary">↶</button>
+      <button id="wakeBtn" class="btn secondary">☀</button>
+      <button id="logBtn" class="btn secondary">Log</button>
+      <button id="settingsBtn" class="btn secondary">⚙</button>
+      <button id="newBtn" class="btn danger">Neu</button>
+    </div>
+  </header>
+  <section id="players" class="players"></section>
+</main>
+
+<dialog id="scoreDialog">
+  <form method="dialog" id="scoreForm">
+    <strong>Punktestand setzen</strong>
+    <div class="dialog-row"><input id="scoreInput" type="number" inputmode="numeric" min="0" max="9999"></div>
+    <div class="dialog-actions"><button value="cancel" class="btn secondary">Abbrechen</button><button value="default" class="btn">Speichern</button></div>
+  </form>
+</dialog>
+
+<dialog id="settingsDialog">
+  <strong>Einstellungen</strong>
+  <div class="settings-row"><label for="startScore">Startpunkte</label><input id="startScore" type="number" inputmode="numeric" min="1" max="999" value="50"></div>
+  <div class="settings-row"><span>Spieler</span><button id="addBtn" class="btn">+ Spieler</button></div>
+  <p id="wakeStatus" class="hint"></p>
+  <div class="dialog-actions"><button id="closeSettingsBtn" class="btn">Schließen</button></div>
+</dialog>
+
+<dialog id="logDialog">
+  <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:8px">
+    <strong>Spielverlauf</strong><button id="clearLogBtn" class="btn secondary">Löschen</button>
+  </div>
+  <div id="log" class="log"></div>
+  <div class="dialog-actions"><button id="closeLogBtn" class="btn">Schließen</button></div>
+</dialog>
+
+<script>
+const STORAGE_KEY="realm-counter-state-v5";
+const OLD_STORAGE_KEYS=["realm-counter-state-v4","realm-counter-state-v3","realm-counter-state-v2","realm-counter-state-v1"];
+const MAX_PLAYERS=4, MIN_PLAYERS=2;
+const defaultState=()=>({startScore:50,players:[
+  {id:crypto.randomUUID(),name:"Spieler 1",score:50},
+  {id:crypto.randomUUID(),name:"Spieler 2",score:50}
+],history:[],log:[]});
+
+let state;
+try{
+  const saved=localStorage.getItem(STORAGE_KEY)||OLD_STORAGE_KEYS.map(k=>localStorage.getItem(k)).find(Boolean);
+  state=saved?JSON.parse(saved):defaultState();
+}catch{state=defaultState()}
+state.history ||= []; state.log ||= [];
+
+const playersEl=document.getElementById("players"),startScoreEl=document.getElementById("startScore"),
+addBtn=document.getElementById("addBtn"),undoBtn=document.getElementById("undoBtn"),wakeBtn=document.getElementById("wakeBtn"),
+logBtn=document.getElementById("logBtn"),settingsBtn=document.getElementById("settingsBtn"),newBtn=document.getElementById("newBtn"),
+wakeStatusEl=document.getElementById("wakeStatus"),logEl=document.getElementById("log"),clearLogBtn=document.getElementById("clearLogBtn"),
+scoreDialog=document.getElementById("scoreDialog"),scoreInput=document.getElementById("scoreInput"),scoreForm=document.getElementById("scoreForm"),
+settingsDialog=document.getElementById("settingsDialog"),logDialog=document.getElementById("logDialog");
+
+let editingPlayerId=null,wakeLock=null,wakeRequested=false;
+const deltaAccumulators=new Map();
+
+function esc(s){return String(s).replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[m]))}
+function save(){localStorage.setItem(STORAGE_KEY,JSON.stringify(state))}
+function snapshot(){state.history.push({players:state.players.map(p=>({...p})),startScore:state.startScore,log:state.log.map(x=>({...x}))});if(state.history.length>100)state.history.shift()}
+function addLog(player,delta,from,to,type="change"){state.log.unshift({id:crypto.randomUUID(),time:Date.now(),player:player.name,delta,from,to,type});if(state.log.length>200)state.log.length=200}
+function formatTime(ts){return new Date(ts).toLocaleTimeString([], {hour:"2-digit",minute:"2-digit",second:"2-digit"})}
+
+function renderLog(){
+  if(!state.log.length){logEl.innerHTML='<div class="hint">Noch keine Änderungen.</div>';return}
+  logEl.innerHTML=state.log.map(e=>{
+    const sign=e.delta>0?"+":"",cls=e.delta>0?"plus":e.delta<0?"minus":"";
+    return `<div class="log-entry"><span class="log-time">${formatTime(e.time)}</span><span>${esc(e.player)} · ${e.from} → ${e.to}</span><span class="log-change ${cls}">${sign}${e.delta}</span></div>`
+  }).join("")
+}
+
+function render(){
+  startScoreEl.value=state.startScore;
+  playersEl.innerHTML="";
+  for(let slot=0;slot<MAX_PLAYERS;slot++){
+    const player=state.players[slot];
+    if(!player){
+      const empty=document.createElement("div");
+      empty.className="empty-slot";
+      empty.innerHTML='<button class="btn secondary" data-action="add-slot">+ Spieler</button>';
+      playersEl.appendChild(empty); continue;
+    }
+    const card=document.createElement("article");
+    card.className="card"+(player.score<=0?" dead":"");
+    card.innerHTML=`
+      <div class="player-head">
+        <input class="name" data-action="name" data-id="${player.id}" maxlength="24" value="${esc(player.name)}">
+        <button class="remove" data-action="remove" data-id="${player.id}">×</button>
       </div>
-      <div class="top-actions">
-        <button id="undoBtn" class="btn secondary">↶ Undo</button>
-        <button id="wakeBtn" class="btn secondary">☀ Bildschirm an</button>
-        <button id="newBtn" class="btn danger">Neues Spiel</button>
+      <div class="score-wrap">
+        <div id="delta-${player.id}" class="delta-float"></div>
+        <button class="score ${player.score<=0?"zero":""}" data-action="edit" data-id="${player.id}">${player.score}</button>
       </div>
-    </header>
+      <div class="controls">
+        <button class="score-btn minus" data-action="change" data-id="${player.id}" data-delta="-1">−1</button>
+        <div class="custom-change">
+          <button class="apply-btn custom-minus" data-action="custom-apply" data-sign="-1" data-id="${player.id}">−</button>
+          <input class="custom-input" data-action="custom-input" data-id="${player.id}" type="number" inputmode="numeric" min="1" max="9999" placeholder="Punkte">
+          <button class="apply-btn custom-plus" data-action="custom-apply" data-sign="1" data-id="${player.id}">+</button>
+        </div>
+        <button class="score-btn plus" data-action="change" data-id="${player.id}" data-delta="1">+1</button>
+      </div>`;
+    playersEl.appendChild(card)
+  }
+  undoBtn.disabled=!state.history.length;
+  addBtn.disabled=state.players.length>=MAX_PLAYERS;
+  renderLog(); updateWakeUi(); save()
+}
 
-    <section id="players" class="players" aria-live="polite"></section>
+function flashDelta(id,delta){
+  const prev=deltaAccumulators.get(id), total=(prev?.total||0)+delta;
+  if(prev?.timer)clearTimeout(prev.timer);
+  const el=document.getElementById(`delta-${id}`); if(!el)return;
+  el.className="delta-float"; void el.offsetWidth;
+  el.textContent=total>0?`+${total}`:`${total}`;
+  if(total>0)el.classList.add("plus"); else if(total<0)el.classList.add("minus");
+  el.classList.add("show");
+  const timer=setTimeout(()=>deltaAccumulators.delete(id),3000);
+  deltaAccumulators.set(id,{total,timer})
+}
+function changeScore(player,delta){
+  const from=player.score,to=Math.max(0,from+delta),actual=to-from;if(!actual)return;
+  snapshot();player.score=to;addLog(player,actual,from,to);render();requestAnimationFrame(()=>flashDelta(player.id,actual))
+}
+function addPlayer(){
+  if(state.players.length>=MAX_PLAYERS)return;
+  snapshot();const n=state.players.length+1;
+  state.players.push({id:crypto.randomUUID(),name:`Spieler ${n}`,score:state.startScore});render()
+}
 
-    <section class="setup">
-      <label>Startpunkte
-        <input id="startScore" type="number" inputmode="numeric" min="1" max="999" value="50">
-      </label>
-      <button id="addBtn" class="btn">+ Spieler</button>
-      <span id="status" class="hint"></span>
-      <span id="wakeStatus" class="wake-status"></span>
-    </section>
+playersEl.addEventListener("click",e=>{
+  const btn=e.target.closest("[data-action]");if(!btn)return;
+  if(btn.dataset.action==="add-slot"){addPlayer();return}
+  const id=btn.dataset.id,player=state.players.find(p=>p.id===id);if(!player)return;
+  if(btn.dataset.action==="change")changeScore(player,Number(btn.dataset.delta));
+  if(btn.dataset.action==="custom-apply"){
+    const input=playersEl.querySelector(`[data-action="custom-input"][data-id="${id}"]`);
+    const amount=Math.abs(Number(input?.value));if(!Number.isFinite(amount)||amount===0)return;
+    changeScore(player,amount*(Number(btn.dataset.sign)||1));input.value="";input.blur()
+  }
+  if(btn.dataset.action==="remove"){
+    if(state.players.length<=MIN_PLAYERS)return;snapshot();state.players=state.players.filter(p=>p.id!==id);render()
+  }
+  if(btn.dataset.action==="edit"){editingPlayerId=id;scoreInput.value=player.score;scoreDialog.showModal();setTimeout(()=>scoreInput.select(),50)}
+});
+playersEl.addEventListener("input",e=>{
+  if(!e.target.matches('[data-action="name"]'))return;
+  const p=state.players.find(p=>p.id===e.target.dataset.id);if(p){p.name=e.target.value;save()}
+});
 
-    <section class="log-panel">
-      <div class="log-head">
-        <h2>Spielverlauf</h2>
-        <button id="clearLogBtn" class="btn secondary">Log löschen</button>
-      </div>
-      <div id="log" class="log"></div>
-    </section>
-  </main>
+scoreForm.addEventListener("submit",()=>{
+  if(scoreDialog.returnValue==="cancel")return;
+  const p=state.players.find(p=>p.id===editingPlayerId);if(!p)return;
+  const from=p.score,to=Math.max(0,Math.min(9999,Number(scoreInput.value)||0));
+  if(from!==to){snapshot();p.score=to;addLog(p,to-from,from,to,"set");render();requestAnimationFrame(()=>flashDelta(p.id,to-from))}
+  editingPlayerId=null
+});
 
-  <dialog id="scoreDialog">
-    <form method="dialog" id="scoreForm">
-      <strong>Punktestand setzen</strong>
-      <div class="dialog-row">
-        <input id="scoreInput" type="number" inputmode="numeric" min="0" max="9999" />
-      </div>
-      <p class="hint">Tippe auf einen Punktestand, um ihn direkt zu ändern.</p>
-      <div class="dialog-actions">
-        <button value="cancel" class="btn secondary">Abbrechen</button>
-        <button id="saveScoreBtn" value="default" class="btn">Speichern</button>
-      </div>
-    </form>
-  </dialog>
+undoBtn.addEventListener("click",()=>{const prev=state.history.pop();if(!prev)return;state.players=prev.players;state.startScore=prev.startScore;state.log=prev.log;render()});
+newBtn.addEventListener("click",()=>{if(!confirm(`Neues Spiel mit ${state.startScore} Startpunkten beginnen?`))return;snapshot();state.players=state.players.map((p,i)=>({...p,name:p.name||`Spieler ${i+1}`,score:state.startScore}));state.log=[];render()});
+addBtn.addEventListener("click",addPlayer);
+startScoreEl.addEventListener("change",()=>{state.startScore=Math.max(1,Math.min(999,Number(startScoreEl.value)||50));save();render()});
 
-  <script>
-    const STORAGE_KEY = "realm-counter-state-v2";
-    const MAX_PLAYERS = 4;
-    const MIN_PLAYERS = 2;
+logBtn.addEventListener("click",()=>{renderLog();logDialog.showModal()});
+document.getElementById("closeLogBtn").addEventListener("click",()=>logDialog.close());
+clearLogBtn.addEventListener("click",()=>{if(!state.log.length)return;snapshot();state.log=[];renderLog();save()});
+settingsBtn.addEventListener("click",()=>settingsDialog.showModal());
+document.getElementById("closeSettingsBtn").addEventListener("click",()=>settingsDialog.close());
 
-    const defaultState = () => ({
-      startScore: 50,
-      players: [
-        { id: crypto.randomUUID(), name: "Spieler 1", score: 50 },
-        { id: crypto.randomUUID(), name: "Spieler 2", score: 50 }
-      ],
-      history: [],
-      log: []
-    });
+async function requestWakeLock(){
+  wakeRequested=true;
+  if(!("wakeLock" in navigator)){wakeStatusEl.textContent="Wake Lock wird von diesem Browser nicht unterstützt.";updateWakeUi();return}
+  try{
+    wakeLock=await navigator.wakeLock.request("screen");
+    wakeStatusEl.textContent="Bildschirm bleibt an.";
+    wakeLock.addEventListener("release",()=>{wakeLock=null;updateWakeUi()})
+  }catch{wakeStatusEl.textContent="Wake Lock konnte nicht aktiviert werden."}
+  updateWakeUi()
+}
+async function releaseWakeLock(){
+  wakeRequested=false;if(wakeLock){try{await wakeLock.release()}catch{}wakeLock=null}
+  wakeStatusEl.textContent="Wake Lock aus.";updateWakeUi()
+}
+function updateWakeUi(){wakeBtn.textContent=wakeLock?"☀✓":"☀"}
+wakeBtn.addEventListener("click",()=>{if(wakeLock||wakeRequested)releaseWakeLock();else requestWakeLock()});
+document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible"&&wakeRequested&&!wakeLock)requestWakeLock()});
 
-    let state;
-    try {
-      state = JSON.parse(localStorage.getItem(STORAGE_KEY)) || defaultState();
-    } catch {
-      state = defaultState();
-    }
-    state.history ||= [];
-    state.log ||= [];
-
-    const playersEl = document.getElementById("players");
-    const startScoreEl = document.getElementById("startScore");
-    const addBtn = document.getElementById("addBtn");
-    const undoBtn = document.getElementById("undoBtn");
-    const wakeBtn = document.getElementById("wakeBtn");
-    const newBtn = document.getElementById("newBtn");
-    const statusEl = document.getElementById("status");
-    const wakeStatusEl = document.getElementById("wakeStatus");
-    const logEl = document.getElementById("log");
-    const clearLogBtn = document.getElementById("clearLogBtn");
-    const scoreDialog = document.getElementById("scoreDialog");
-    const scoreInput = document.getElementById("scoreInput");
-    const scoreForm = document.getElementById("scoreForm");
-
-    let editingPlayerId = null;
-    let wakeLock = null;
-    let wakeRequested = false;
-
-    function save() {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
-    }
-
-    function snapshot() {
-      state.history.push({
-        players: state.players.map(p => ({...p})),
-        startScore: state.startScore,
-        log: state.log.map(x => ({...x}))
-      });
-      if (state.history.length > 100) state.history.shift();
-    }
-
-    function addLog(player, delta, from, to, type = "change") {
-      state.log.unshift({
-        id: crypto.randomUUID(),
-        time: Date.now(),
-        player: player.name,
-        delta,
-        from,
-        to,
-        type
-      });
-      if (state.log.length > 200) state.log.length = 200;
-    }
-
-    function formatTime(ts) {
-      return new Date(ts).toLocaleTimeString([], {hour:"2-digit", minute:"2-digit", second:"2-digit"});
-    }
-
-    function renderLog() {
-      if (!state.log.length) {
-        logEl.innerHTML = `<div class="hint">Noch keine Änderungen.</div>`;
-        return;
-      }
-      logEl.innerHTML = state.log.map(entry => {
-        const sign = entry.delta > 0 ? "+" : "";
-        const cls = entry.delta > 0 ? "plus" : entry.delta < 0 ? "minus" : "";
-        const label = entry.type === "set" ? `gesetzt: ${entry.from} → ${entry.to}` : `${entry.from} → ${entry.to}`;
-        return `
-          <div class="log-entry">
-            <span class="log-time">${formatTime(entry.time)}</span>
-            <span>${escapeHtml(entry.player)} · ${label}</span>
-            <span class="log-change ${cls}">${sign}${entry.delta}</span>
-          </div>`;
-      }).join("");
-    }
-
-    function render() {
-      startScoreEl.value = state.startScore;
-      playersEl.innerHTML = "";
-
-      state.players.forEach((player, index) => {
-        const card = document.createElement("article");
-        card.className = "card" + (player.score <= 0 ? " dead" : "");
-        card.innerHTML = `
-          <div class="player-head">
-            <input class="name" aria-label="Spielername" maxlength="24" value="${escapeHtml(player.name)}" data-action="name" data-id="${player.id}">
-            <button class="remove" title="Spieler entfernen" aria-label="Spieler entfernen" data-action="remove" data-id="${player.id}">×</button>
-          </div>
-          <div class="score-wrap">
-            <div id="delta-${player.id}" class="delta-float"></div>
-            <button class="score ${player.score <= 0 ? "zero" : ""}" data-action="edit" data-id="${player.id}" aria-label="Punktestand bearbeiten">${player.score}</button>
-          </div>
-          <div class="controls">
-            <button class="score-btn minus" data-action="change" data-id="${player.id}" data-delta="-1">−1</button>
-            <div class="custom-change">
-              <input class="custom-input" data-action="custom-input" data-id="${player.id}" type="number" inputmode="numeric" min="1" max="9999" placeholder="Punkte">
-              <button class="apply-btn" data-action="custom-apply" data-id="${player.id}">Anwenden</button>
-            </div>
-            <button class="score-btn plus" data-action="change" data-id="${player.id}" data-delta="1">+1</button>
-          </div>
-          <div class="meta">
-            <span>${index + 1}. Spieler</span>
-            <span>${player.score <= 0 ? "ausgeschieden" : "im Spiel"}</span>
-          </div>
-        `;
-        playersEl.appendChild(card);
-      });
-
-      addBtn.disabled = state.players.length >= MAX_PLAYERS;
-      addBtn.style.opacity = addBtn.disabled ? ".45" : "1";
-      undoBtn.disabled = state.history.length === 0;
-      undoBtn.style.opacity = undoBtn.disabled ? ".45" : "1";
-      statusEl.textContent = `${state.players.length}/${MAX_PLAYERS} Spieler · automatisch gespeichert`;
-      renderLog();
-      updateWakeUi();
-      save();
-    }
-
-    function escapeHtml(s) {
-      return String(s).replace(/[&<>"']/g, m => ({
-        "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"
-      }[m]));
-    }
-
-    function flashDelta(id, delta) {
-      const el = document.getElementById(`delta-${id}`);
-      if (!el) return;
-      el.className = "delta-float";
-      void el.offsetWidth;
-      el.textContent = `${delta > 0 ? "+" : ""}${delta}`;
-      el.classList.add(delta >= 0 ? "plus" : "minus", "show");
-    }
-
-    function changeScore(player, delta) {
-      const from = player.score;
-      const to = Math.max(0, from + delta);
-      const actualDelta = to - from;
-      if (actualDelta === 0) return;
-
-      snapshot();
-      player.score = to;
-      addLog(player, actualDelta, from, to);
-      render();
-      requestAnimationFrame(() => flashDelta(player.id, actualDelta));
-    }
-
-    playersEl.addEventListener("click", e => {
-      const btn = e.target.closest("[data-action]");
-      if (!btn) return;
-      const id = btn.dataset.id;
-      const player = state.players.find(p => p.id === id);
-      if (!player) return;
-
-      if (btn.dataset.action === "change") {
-        changeScore(player, Number(btn.dataset.delta));
-      }
-
-      if (btn.dataset.action === "custom-apply") {
-        const input = playersEl.querySelector(`[data-action="custom-input"][data-id="${id}"]`);
-        const raw = input?.value?.trim();
-        if (!raw) return;
-        const amount = Number(raw);
-        if (!Number.isFinite(amount) || amount === 0) return;
-        changeScore(player, amount);
-        input.value = "";
-      }
-
-      if (btn.dataset.action === "remove") {
-        if (state.players.length <= MIN_PLAYERS) return;
-        snapshot();
-        state.players = state.players.filter(p => p.id !== id);
-        render();
-      }
-
-      if (btn.dataset.action === "edit") {
-        editingPlayerId = id;
-        scoreInput.value = player.score;
-        scoreDialog.showModal();
-        setTimeout(() => scoreInput.select(), 50);
-      }
-    });
-
-    playersEl.addEventListener("keydown", e => {
-      if (e.key !== "Enter" || !e.target.matches('[data-action="custom-input"]')) return;
-      const id = e.target.dataset.id;
-      const player = state.players.find(p => p.id === id);
-      if (!player) return;
-      const amount = Number(e.target.value);
-      if (!Number.isFinite(amount) || amount === 0) return;
-      changeScore(player, amount);
-      e.target.value = "";
-    });
-
-    playersEl.addEventListener("input", e => {
-      if (!e.target.matches('[data-action="name"]')) return;
-      const player = state.players.find(p => p.id === e.target.dataset.id);
-      if (player) {
-        player.name = e.target.value;
-        save();
-      }
-    });
-
-    addBtn.addEventListener("click", () => {
-      if (state.players.length >= MAX_PLAYERS) return;
-      snapshot();
-      const n = state.players.length + 1;
-      state.players.push({
-        id: crypto.randomUUID(),
-        name: `Spieler ${n}`,
-        score: state.startScore
-      });
-      render();
-    });
-
-    startScoreEl.addEventListener("change", () => {
-      const val = Math.max(1, Math.min(999, Number(startScoreEl.value) || 50));
-      state.startScore = val;
-      save();
-      render();
-    });
-
-    undoBtn.addEventListener("click", () => {
-      const prev = state.history.pop();
-      if (!prev) return;
-      state.players = prev.players;
-      state.startScore = prev.startScore;
-      state.log = prev.log;
-      render();
-    });
-
-    newBtn.addEventListener("click", () => {
-      const ok = confirm(`Neues Spiel mit ${state.startScore} Startpunkten beginnen?`);
-      if (!ok) return;
-      snapshot();
-      state.players = state.players.map((p, i) => ({
-        ...p,
-        name: p.name || `Spieler ${i+1}`,
-        score: state.startScore
-      }));
-      state.log.unshift({
-        id: crypto.randomUUID(),
-        time: Date.now(),
-        player: "Spiel",
-        delta: 0,
-        from: state.startScore,
-        to: state.startScore,
-        type: "new"
-      });
-      render();
-    });
-
-    clearLogBtn.addEventListener("click", () => {
-      if (!state.log.length) return;
-      snapshot();
-      state.log = [];
-      render();
-    });
-
-    scoreForm.addEventListener("submit", () => {
-      if (scoreDialog.returnValue === "cancel") return;
-      const player = state.players.find(p => p.id === editingPlayerId);
-      if (!player) return;
-      const from = player.score;
-      const to = Math.max(0, Math.min(9999, Number(scoreInput.value) || 0));
-      if (from !== to) {
-        snapshot();
-        player.score = to;
-        addLog(player, to - from, from, to, "set");
-      }
-      editingPlayerId = null;
-      render();
-      requestAnimationFrame(() => flashDelta(player.id, to - from));
-    });
-
-    async function requestWakeLock() {
-      wakeRequested = true;
-      if (!("wakeLock" in navigator)) {
-        wakeStatusEl.textContent = "Wake Lock wird von diesem Browser nicht unterstützt.";
-        updateWakeUi();
-        return;
-      }
-      try {
-        wakeLock = await navigator.wakeLock.request("screen");
-        wakeStatusEl.textContent = "Bildschirm bleibt während des Spiels an.";
-        wakeLock.addEventListener("release", () => {
-          wakeLock = null;
-          updateWakeUi();
-        });
-      } catch (err) {
-        wakeStatusEl.textContent = "Bildschirm konnte nicht dauerhaft aktiv gehalten werden.";
-      }
-      updateWakeUi();
-    }
-
-    async function releaseWakeLock() {
-      wakeRequested = false;
-      if (wakeLock) {
-        try { await wakeLock.release(); } catch {}
-        wakeLock = null;
-      }
-      wakeStatusEl.textContent = "Bildschirm-Wachhaltung aus.";
-      updateWakeUi();
-    }
-
-    function updateWakeUi() {
-      if (!wakeBtn) return;
-      if (wakeLock) {
-        wakeBtn.textContent = "☀ Bildschirm bleibt an";
-      } else if (wakeRequested) {
-        wakeBtn.textContent = "☀ Bildschirm erneut aktivieren";
-      } else {
-        wakeBtn.textContent = "☀ Bildschirm an";
-      }
-    }
-
-    wakeBtn.addEventListener("click", () => {
-      if (wakeLock || wakeRequested) releaseWakeLock();
-      else requestWakeLock();
-    });
-
-    document.addEventListener("visibilitychange", () => {
-      if (document.visibilityState === "visible" && wakeRequested && !wakeLock) {
-        requestWakeLock();
-      }
-    });
-
-    if ("serviceWorker" in navigator) {
-      window.addEventListener("load", () => navigator.serviceWorker.register("./sw.js"));
-    }
-
-    render();
-  </script>
+if("serviceWorker" in navigator)window.addEventListener("load",()=>navigator.serviceWorker.register("./sw.js"));
+render();
+</script>
 </body>
 </html>
