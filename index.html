@@ -1,0 +1,296 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#0b1020" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <title>Realm Counter</title>
+  <link rel="manifest" href="manifest.webmanifest" />
+  <style>
+    :root{
+      color-scheme: dark;
+      --bg:#07111f;
+      --panel:#101a2e;
+      --panel2:#16233d;
+      --text:#f4f7fb;
+      --muted:#9badc6;
+      --danger:#ff6b6b;
+      --ok:#63d297;
+      --line:#263754;
+      --shadow:0 12px 28px rgba(0,0,0,.25);
+    }
+    *{box-sizing:border-box}
+    html,body{margin:0;min-height:100%;background:radial-gradient(circle at top,#12203a 0,#07111f 55%);font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:var(--text)}
+    body{min-height:100dvh;padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left)}
+    button,input{font:inherit}
+    button{touch-action:manipulation}
+    .app{max-width:1100px;margin:0 auto;padding:14px}
+    header{display:flex;gap:12px;align-items:center;justify-content:space-between;margin-bottom:14px}
+    .brand h1{font-size:20px;line-height:1.1;margin:0}
+    .brand p{margin:3px 0 0;color:var(--muted);font-size:12px}
+    .top-actions{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end}
+    .btn{border:1px solid var(--line);background:var(--panel2);color:var(--text);padding:9px 12px;border-radius:12px;font-weight:700;cursor:pointer}
+    .btn:active{transform:translateY(1px)}
+    .btn.secondary{background:transparent}
+    .btn.danger{border-color:#5d2b36;color:#ffd5d8}
+    .players{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+    .card{background:linear-gradient(180deg,rgba(22,35,61,.97),rgba(14,25,45,.97));border:1px solid var(--line);border-radius:20px;padding:14px;box-shadow:var(--shadow);min-height:275px;display:flex;flex-direction:column}
+    .card.dead{opacity:.65;filter:saturate(.5)}
+    .player-head{display:flex;gap:8px;align-items:center}
+    .name{width:100%;background:transparent;border:0;border-bottom:1px solid transparent;color:var(--text);font-weight:800;font-size:17px;outline:none;padding:6px}
+    .name:focus{border-bottom-color:#6079a5}
+    .remove{width:36px;height:36px;border-radius:10px;border:1px solid var(--line);background:transparent;color:var(--muted);font-weight:900}
+    .score-wrap{display:flex;align-items:center;justify-content:center;flex:1;min-height:105px}
+    .score{border:0;background:transparent;color:var(--text);font-size:clamp(54px,10vw,92px);font-weight:900;line-height:1;letter-spacing:-.05em;padding:8px 14px;border-radius:18px;cursor:pointer}
+    .score.zero{color:var(--danger)}
+    .grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+    .score-btn{border:1px solid var(--line);background:#0c1629;color:var(--text);padding:14px 6px;border-radius:14px;font-size:17px;font-weight:900}
+    .score-btn.plus{background:#10291f;border-color:#214b3a;color:#bff4d6}
+    .score-btn.minus{background:#2b151a;border-color:#553039;color:#ffd0d4}
+    .meta{display:flex;justify-content:space-between;gap:8px;margin-top:10px;color:var(--muted);font-size:12px}
+    .setup{margin-top:14px;background:rgba(16,26,46,.8);border:1px solid var(--line);border-radius:16px;padding:12px;display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+    .setup label{color:var(--muted);font-size:13px}
+    .setup input{width:86px;background:#091321;color:var(--text);border:1px solid var(--line);border-radius:10px;padding:9px}
+    dialog{border:1px solid var(--line);background:#0e192c;color:var(--text);border-radius:18px;box-shadow:var(--shadow);width:min(92vw,380px)}
+    dialog::backdrop{background:rgba(0,0,0,.65)}
+    .dialog-row{display:flex;gap:8px;align-items:center;margin-top:14px}
+    .dialog-row input{flex:1;background:#091321;color:var(--text);border:1px solid var(--line);border-radius:12px;padding:12px;font-size:20px;font-weight:800}
+    .dialog-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:14px}
+    .hint{color:var(--muted);font-size:12px;margin:8px 0 0}
+    @media (max-width:700px){
+      .players{grid-template-columns:1fr}
+      .card{min-height:250px}
+      header{align-items:flex-start}
+      .brand p{display:none}
+    }
+    @media (orientation:landscape) and (max-height:600px){
+      .players{grid-template-columns:repeat(2,minmax(0,1fr))}
+      .card{min-height:210px}
+      .score-wrap{min-height:70px}
+      .score{font-size:56px}
+      .score-btn{padding:10px 6px}
+    }
+  </style>
+</head>
+<body>
+  <main class="app">
+    <header>
+      <div class="brand">
+        <h1>Realm Counter</h1>
+        <p>Lokaler Punktezähler für Kartenspiele</p>
+      </div>
+      <div class="top-actions">
+        <button id="undoBtn" class="btn secondary">↶ Undo</button>
+        <button id="newBtn" class="btn danger">Neues Spiel</button>
+      </div>
+    </header>
+
+    <section id="players" class="players" aria-live="polite"></section>
+
+    <section class="setup">
+      <label>Startpunkte
+        <input id="startScore" type="number" inputmode="numeric" min="1" max="999" value="50">
+      </label>
+      <button id="addBtn" class="btn">+ Spieler</button>
+      <span id="status" class="hint"></span>
+    </section>
+  </main>
+
+  <dialog id="scoreDialog">
+    <form method="dialog" id="scoreForm">
+      <strong>Punktestand setzen</strong>
+      <div class="dialog-row">
+        <input id="scoreInput" type="number" inputmode="numeric" min="0" max="9999" />
+      </div>
+      <p class="hint">Tippe auf einen Punktestand, um ihn direkt zu ändern.</p>
+      <div class="dialog-actions">
+        <button value="cancel" class="btn secondary">Abbrechen</button>
+        <button id="saveScoreBtn" value="default" class="btn">Speichern</button>
+      </div>
+    </form>
+  </dialog>
+
+  <script>
+    const STORAGE_KEY = "realm-counter-state-v1";
+    const MAX_PLAYERS = 4;
+    const MIN_PLAYERS = 2;
+    const defaultState = () => ({
+      startScore: 50,
+      players: [
+        { id: crypto.randomUUID(), name: "Spieler 1", score: 50, turns: 0 },
+        { id: crypto.randomUUID(), name: "Spieler 2", score: 50, turns: 0 }
+      ],
+      history: []
+    });
+
+    let state;
+    try {
+      state = JSON.parse(localStorage.getItem(STORAGE_KEY)) || defaultState();
+    } catch {
+      state = defaultState();
+    }
+
+    const playersEl = document.getElementById("players");
+    const startScoreEl = document.getElementById("startScore");
+    const addBtn = document.getElementById("addBtn");
+    const undoBtn = document.getElementById("undoBtn");
+    const newBtn = document.getElementById("newBtn");
+    const statusEl = document.getElementById("status");
+    const scoreDialog = document.getElementById("scoreDialog");
+    const scoreInput = document.getElementById("scoreInput");
+    const scoreForm = document.getElementById("scoreForm");
+    let editingPlayerId = null;
+
+    function save() {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+    }
+
+    function snapshot() {
+      state.history.push({
+        players: state.players.map(p => ({...p})),
+        startScore: state.startScore
+      });
+      if (state.history.length > 100) state.history.shift();
+    }
+
+    function render() {
+      startScoreEl.value = state.startScore;
+      playersEl.innerHTML = "";
+
+      state.players.forEach((player, index) => {
+        const card = document.createElement("article");
+        card.className = "card" + (player.score <= 0 ? " dead" : "");
+        card.innerHTML = `
+          <div class="player-head">
+            <input class="name" aria-label="Spielername" maxlength="24" value="${escapeHtml(player.name)}" data-action="name" data-id="${player.id}">
+            <button class="remove" title="Spieler entfernen" aria-label="Spieler entfernen" data-action="remove" data-id="${player.id}">×</button>
+          </div>
+          <div class="score-wrap">
+            <button class="score ${player.score <= 0 ? "zero" : ""}" data-action="edit" data-id="${player.id}" aria-label="Punktestand bearbeiten">${player.score}</button>
+          </div>
+          <div class="grid">
+            ${[-10,-5,-1,1,5,10].map(v => `
+              <button class="score-btn ${v > 0 ? "plus" : "minus"}" data-action="change" data-id="${player.id}" data-delta="${v}">
+                ${v > 0 ? "+" : ""}${v}
+              </button>`).join("")}
+          </div>
+          <div class="meta">
+            <span>${index + 1}. Spieler</span>
+            <span>${player.score <= 0 ? "ausgeschieden" : "im Spiel"}</span>
+          </div>
+        `;
+        playersEl.appendChild(card);
+      });
+
+      addBtn.disabled = state.players.length >= MAX_PLAYERS;
+      addBtn.style.opacity = addBtn.disabled ? ".45" : "1";
+      undoBtn.disabled = state.history.length === 0;
+      undoBtn.style.opacity = undoBtn.disabled ? ".45" : "1";
+      statusEl.textContent = `${state.players.length}/${MAX_PLAYERS} Spieler · Änderungen werden automatisch gespeichert`;
+      save();
+    }
+
+    function escapeHtml(s) {
+      return String(s).replace(/[&<>"']/g, m => ({
+        "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"
+      }[m]));
+    }
+
+    playersEl.addEventListener("click", e => {
+      const btn = e.target.closest("[data-action]");
+      if (!btn) return;
+      const id = btn.dataset.id;
+      const player = state.players.find(p => p.id === id);
+      if (!player) return;
+
+      if (btn.dataset.action === "change") {
+        snapshot();
+        player.score = Math.max(0, player.score + Number(btn.dataset.delta));
+        render();
+      }
+
+      if (btn.dataset.action === "remove") {
+        if (state.players.length <= MIN_PLAYERS) return;
+        snapshot();
+        state.players = state.players.filter(p => p.id !== id);
+        render();
+      }
+
+      if (btn.dataset.action === "edit") {
+        editingPlayerId = id;
+        scoreInput.value = player.score;
+        scoreDialog.showModal();
+        setTimeout(() => scoreInput.select(), 50);
+      }
+    });
+
+    playersEl.addEventListener("input", e => {
+      if (!e.target.matches('[data-action="name"]')) return;
+      const player = state.players.find(p => p.id === e.target.dataset.id);
+      if (player) {
+        player.name = e.target.value;
+        save();
+      }
+    });
+
+    addBtn.addEventListener("click", () => {
+      if (state.players.length >= MAX_PLAYERS) return;
+      snapshot();
+      const n = state.players.length + 1;
+      state.players.push({
+        id: crypto.randomUUID(),
+        name: `Spieler ${n}`,
+        score: state.startScore,
+        turns: 0
+      });
+      render();
+    });
+
+    startScoreEl.addEventListener("change", () => {
+      const val = Math.max(1, Math.min(999, Number(startScoreEl.value) || 50));
+      state.startScore = val;
+      save();
+      render();
+    });
+
+    undoBtn.addEventListener("click", () => {
+      const prev = state.history.pop();
+      if (!prev) return;
+      state.players = prev.players;
+      state.startScore = prev.startScore;
+      render();
+    });
+
+    newBtn.addEventListener("click", () => {
+      const ok = confirm(`Neues Spiel mit ${state.startScore} Startpunkten beginnen?`);
+      if (!ok) return;
+      snapshot();
+      state.players = state.players.map((p, i) => ({
+        ...p,
+        name: p.name || `Spieler ${i+1}`,
+        score: state.startScore,
+        turns: 0
+      }));
+      render();
+    });
+
+    scoreForm.addEventListener("submit", e => {
+      if (scoreDialog.returnValue === "cancel") return;
+      const player = state.players.find(p => p.id === editingPlayerId);
+      if (!player) return;
+      snapshot();
+      player.score = Math.max(0, Math.min(9999, Number(scoreInput.value) || 0));
+      editingPlayerId = null;
+      render();
+    });
+
+    if ("serviceWorker" in navigator) {
+      window.addEventListener("load", () => navigator.serviceWorker.register("./sw.js"));
+    }
+
+    render();
+  </script>
+</body>
+</html>
