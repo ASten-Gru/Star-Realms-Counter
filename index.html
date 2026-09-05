@@ -6,7 +6,7 @@
   <meta name="theme-color" content="#06111f" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-  <title>Star Realm Counter v.0.20</title>
+  <title>Star Realm Counter v.0.22</title>
   <link rel="manifest" href="manifest.webmanifest" />
   <style>
     :root{
@@ -256,14 +256,43 @@
       .custom-input{padding:3px 2px;font-size:12px}
       .round-end-btn{width:36px;height:36px;font-size:18px}
     }
-  </style>
+  
+/* v0.22 – Team controls match the other game modes */
+.team-controls{
+  display:grid!important;
+  grid-template-columns:1fr!important;
+  gap:5px!important;
+  padding:5px 7px 7px!important;
+}
+.team-quick-controls{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:6px;
+}
+.team-custom-controls{
+  display:grid;
+  grid-template-columns:44px minmax(56px,90px) 44px;
+  justify-content:center;
+  gap:6px;
+}
+.team-quick-controls button,
+.team-custom-controls button{
+  min-height:38px!important;
+  font-size:18px!important;
+}
+.team-custom-controls input{
+  min-width:0;
+  text-align:center;
+}
+
+</style>
 </head>
 <body>
 <main class="app">
   <header class="topbar">
     <button id="menuBtn" class="icon-btn" aria-label="Menü">☰</button>
     <div class="title-wrap">
-      <h1 class="title">Star Realm Counter v.0.20</h1>
+      <h1 class="title">Star Realm Counter v.0.22</h1>
       <div class="subtitle">Trade · Attack · Dominate</div>
     </div>
     <button id="settingsBtn" class="icon-btn" aria-label="Einstellungen">⚙</button>
@@ -319,7 +348,7 @@
 </dialog>
 
 <script>
-const STORAGE_KEY="realm-counter-state-v20";
+const STORAGE_KEY="realm-counter-state-v22";
 const OLD_STORAGE_KEYS=["realm-counter-state-v13","realm-counter-state-v12","realm-counter-state-v11","realm-counter-state-v10","realm-counter-state-v9","realm-counter-state-v8","realm-counter-state-v7","realm-counter-state-v6","realm-counter-state-v5","realm-counter-state-v4","realm-counter-state-v3","realm-counter-state-v2","realm-counter-state-v1"];
 const MAX_PLAYERS=4,MIN_PLAYERS=2;
 const FACTIONS=[
@@ -444,16 +473,28 @@ function ensureTeamMode(){
 }
 function teamIndexForPlayer(id){return state.players.findIndex(p=>p.id===id)<2?0:1}
 function changeTeamScore(team,delta){
-  if(state.gameOver)return;
-  pushHistory();
-  state.teamScores[team]=Math.max(0,state.teamScores[team]+delta);
-  addLog({name:team===0?"Team A":"Team B"},delta,state.teamScores[team]-delta,state.teamScores[team]);
-  if(state.teamScores[team]===0){
+  if(state.mode!=="team"||state.gameOver)return;
+  team=Number(team);
+  if(team!==0&&team!==1)return;
+  delta=Number(delta);
+  if(!Number.isFinite(delta)||delta===0)return;
+
+  snapshot();
+
+  const from=Number(state.teamScores?.[team] ?? 75);
+  const to=Math.max(0,Math.min(9999,from+delta));
+  state.teamScores[team]=to;
+
+  addLog({name:team===0?"Team A":"Team B"},to-from,from,to);
+
+  if(to===0){
     const winningTeam=team===0?1:0;
     const winners=state.players.filter(p=>teamIndexForPlayer(p.id)===winningTeam);
     winners.forEach(p=>p.wins=(p.wins||0)+1);
-    state.gameOver=true;state.winnerIds=winners.map(p=>p.id);
+    state.gameOver=true;
+    state.winnerIds=winners.map(p=>p.id);
   }
+
   render();
 }
 function renderTeam(){
@@ -492,9 +533,15 @@ function renderTeam(){
       </div>
 
       <div class="team-controls">
-        <button data-action="team-minus" data-team="${team}" ${state.gameOver?"disabled":""}>−</button>
-        <input class="custom" data-team-input="${team}" inputmode="numeric" pattern="[0-9]*" placeholder="1" aria-label="Punkte ändern">
-        <button data-action="team-plus" data-team="${team}" ${state.gameOver?"disabled":""}>+</button>
+        <div class="team-quick-controls">
+          <button type="button" data-action="team-quick-minus" data-team="${team}" ${state.gameOver?"disabled":""}>−1</button>
+          <button type="button" data-action="team-quick-plus" data-team="${team}" ${state.gameOver?"disabled":""}>+1</button>
+        </div>
+        <div class="team-custom-controls">
+          <button type="button" data-action="team-minus" data-team="${team}" ${state.gameOver?"disabled":""}>−</button>
+          <input class="custom" data-team-input="${team}" inputmode="numeric" pattern="[0-9]*" placeholder="1" aria-label="Punkte ändern">
+          <button type="button" data-action="team-plus" data-team="${team}" ${state.gameOver?"disabled":""}>+</button>
+        </div>
       </div>`;
     playersEl.appendChild(el);
   });
@@ -683,10 +730,18 @@ function setMode(next){
 
 playersEl.addEventListener("click",e=>{
   const btn=e.target.closest("[data-action]");if(!btn)return;
+  if(btn.dataset.action==="team-quick-minus"||btn.dataset.action==="team-quick-plus"){
+    const team=Number(btn.dataset.team);
+    changeTeamScore(team,btn.dataset.action==="team-quick-minus"?-1:1);
+    return;
+  }
   if(btn.dataset.action==="team-minus"||btn.dataset.action==="team-plus"){
-    const team=Number(btn.dataset.team),input=playersEl.querySelector(`[data-team-input="${team}"]`);
-    const amount=Math.max(1,parseInt(input?.value||"1",10)||1);
+    const team=Number(btn.dataset.team);
+    const input=playersEl.querySelector(`[data-team-input="${team}"]`);
+    const raw=String(input?.value||"").trim();
+    const amount=raw===""?1:Math.max(1,parseInt(raw,10)||1);
     changeTeamScore(team,btn.dataset.action==="team-minus"?-amount:amount);
+    if(input){input.value="";input.blur();}
     return;
   }
   if(btn.dataset.action==="add-slot"){addPlayer();return}
@@ -712,6 +767,18 @@ playersEl.addEventListener("input",e=>{
   const p=state.players.find(p=>p.id===e.target.dataset.id);if(p){p.name=e.target.value;save()}
 });
 
+
+
+playersEl.addEventListener("keydown",e=>{
+  const input=e.target.closest("[data-team-input]");
+  if(!input||e.key!=="Enter")return;
+  e.preventDefault();
+  const team=Number(input.dataset.teamInput);
+  const amount=Math.max(1,parseInt(String(input.value||"1"),10)||1);
+  changeTeamScore(team,amount);
+  input.value="";
+  input.blur();
+});
 
 factionMenu.addEventListener("click",e=>{
   const btn=e.target.closest("[data-faction]");if(!btn||btn.disabled)return;
