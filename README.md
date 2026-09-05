@@ -1,25 +1,23 @@
 # Realm Counter
 
-Kleine installierbare PWA für Lebens-/Punktestände bei Kartenspielen.
+Installierbare PWA für Lebens-/Punktestände bei Kartenspielen.
 
 ## Funktionen
 - 2–4 Spieler
 - Startpunkte frei einstellbar
-- ±1 / ±5 / ±10
+- ±1 Schnellbuttons
+- freie Punktänderung per Eingabefeld, z. B. `-17` oder `23`
 - direkter manueller Punktestand
-- Undo
+- 3 Sekunden sichtbare Änderungsanzeige
+- Spielverlauf / Log
+- Undo inklusive Log
+- Wake Lock: Bildschirm bleibt während des Spiels an, sofern vom Browser unterstützt
 - neues Spiel
 - lokale Speicherung
 - offline-fähig nach dem ersten Laden
-- installierbar auf dem Homescreen
 
-## Lokal testen
-Einfach `index.html` öffnen. Für Service Worker/PWA-Installation am besten über einen kleinen lokalen Webserver:
+## Aktualisierung auf GitHub Pages
+Die Dateien aus diesem Ordner erneut in das bestehende GitHub-Repository hochladen und die alten Dateien ersetzen.
+GitHub Pages veröffentlicht die neue Version automatisch.
 
-Python:
-`python -m http.server 8000`
-
-Dann `http://localhost:8000` öffnen.
-
-## Kostenlos hosten
-Der komplette Ordner kann z. B. auf GitHub Pages, Cloudflare Pages oder Vercel veröffentlicht werden.
+Falls auf dem Handy noch die alte Version angezeigt wird, die Seite einmal neu laden bzw. die installierte PWA vollständig schließen und wieder öffnen.

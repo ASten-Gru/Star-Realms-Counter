@@ -1,4 +1,4 @@
-const CACHE = "realm-counter-v1";
+const CACHE = "realm-counter-v2";
 const ASSETS = ["./", "./index.html", "./manifest.webmanifest", "./icon.svg"];
 
 self.addEventListener("install", event => {

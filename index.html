@@ -36,23 +36,46 @@
     .btn.secondary{background:transparent}
     .btn.danger{border-color:#5d2b36;color:#ffd5d8}
     .players{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
-    .card{background:linear-gradient(180deg,rgba(22,35,61,.97),rgba(14,25,45,.97));border:1px solid var(--line);border-radius:20px;padding:14px;box-shadow:var(--shadow);min-height:275px;display:flex;flex-direction:column}
+    .card{position:relative;background:linear-gradient(180deg,rgba(22,35,61,.97),rgba(14,25,45,.97));border:1px solid var(--line);border-radius:20px;padding:14px;box-shadow:var(--shadow);min-height:300px;display:flex;flex-direction:column;overflow:hidden}
     .card.dead{opacity:.65;filter:saturate(.5)}
     .player-head{display:flex;gap:8px;align-items:center}
     .name{width:100%;background:transparent;border:0;border-bottom:1px solid transparent;color:var(--text);font-weight:800;font-size:17px;outline:none;padding:6px}
     .name:focus{border-bottom-color:#6079a5}
     .remove{width:36px;height:36px;border-radius:10px;border:1px solid var(--line);background:transparent;color:var(--muted);font-weight:900}
-    .score-wrap{display:flex;align-items:center;justify-content:center;flex:1;min-height:105px}
+    .score-wrap{display:flex;align-items:center;justify-content:center;flex:1;min-height:110px;position:relative}
     .score{border:0;background:transparent;color:var(--text);font-size:clamp(54px,10vw,92px);font-weight:900;line-height:1;letter-spacing:-.05em;padding:8px 14px;border-radius:18px;cursor:pointer}
     .score.zero{color:var(--danger)}
-    .grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
-    .score-btn{border:1px solid var(--line);background:#0c1629;color:var(--text);padding:14px 6px;border-radius:14px;font-size:17px;font-weight:900}
+    .delta-float{position:absolute;left:50%;top:10px;transform:translateX(-50%);font-size:30px;font-weight:900;pointer-events:none;opacity:0}
+    .delta-float.show{animation:fadeDelta 3s ease forwards}
+    .delta-float.plus{color:var(--ok)}
+    .delta-float.minus{color:var(--danger)}
+    @keyframes fadeDelta{
+      0%{opacity:0;transform:translate(-50%,8px) scale(.9)}
+      12%{opacity:1;transform:translate(-50%,0) scale(1)}
+      70%{opacity:1}
+      100%{opacity:0;transform:translate(-50%,-10px) scale(.96)}
+    }
+    .controls{display:grid;grid-template-columns:92px 1fr 92px;gap:8px;align-items:stretch}
+    .score-btn{border:1px solid var(--line);background:#0c1629;color:var(--text);padding:14px 6px;border-radius:14px;font-size:22px;font-weight:900}
     .score-btn.plus{background:#10291f;border-color:#214b3a;color:#bff4d6}
     .score-btn.minus{background:#2b151a;border-color:#553039;color:#ffd0d4}
+    .custom-change{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+    .custom-input{width:100%;min-width:0;background:#091321;color:var(--text);border:1px solid var(--line);border-radius:12px;padding:10px;text-align:center;font-size:19px;font-weight:800}
+    .apply-btn{border:1px solid var(--line);background:var(--panel2);color:var(--text);border-radius:12px;font-weight:800}
     .meta{display:flex;justify-content:space-between;gap:8px;margin-top:10px;color:var(--muted);font-size:12px}
-    .setup{margin-top:14px;background:rgba(16,26,46,.8);border:1px solid var(--line);border-radius:16px;padding:12px;display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+    .setup,.log-panel{margin-top:14px;background:rgba(16,26,46,.8);border:1px solid var(--line);border-radius:16px;padding:12px}
+    .setup{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
     .setup label{color:var(--muted);font-size:13px}
     .setup input{width:86px;background:#091321;color:var(--text);border:1px solid var(--line);border-radius:10px;padding:9px}
+    .wake-status{color:var(--muted);font-size:12px}
+    .log-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:8px}
+    .log-head h2{font-size:15px;margin:0}
+    .log{display:flex;flex-direction:column;gap:6px;max-height:220px;overflow:auto}
+    .log-entry{display:grid;grid-template-columns:70px 1fr auto;gap:8px;padding:8px 0;border-top:1px solid rgba(38,55,84,.65);font-size:13px}
+    .log-entry:first-child{border-top:0}
+    .log-time{color:var(--muted)}
+    .log-change.plus{color:var(--ok);font-weight:800}
+    .log-change.minus{color:var(--danger);font-weight:800}
     dialog{border:1px solid var(--line);background:#0e192c;color:var(--text);border-radius:18px;box-shadow:var(--shadow);width:min(92vw,380px)}
     dialog::backdrop{background:rgba(0,0,0,.65)}
     .dialog-row{display:flex;gap:8px;align-items:center;margin-top:14px}
@@ -61,14 +84,15 @@
     .hint{color:var(--muted);font-size:12px;margin:8px 0 0}
     @media (max-width:700px){
       .players{grid-template-columns:1fr}
-      .card{min-height:250px}
+      .card{min-height:270px}
       header{align-items:flex-start}
       .brand p{display:none}
+      .controls{grid-template-columns:76px 1fr 76px}
     }
     @media (orientation:landscape) and (max-height:600px){
       .players{grid-template-columns:repeat(2,minmax(0,1fr))}
-      .card{min-height:210px}
-      .score-wrap{min-height:70px}
+      .card{min-height:230px}
+      .score-wrap{min-height:75px}
       .score{font-size:56px}
       .score-btn{padding:10px 6px}
     }
@@ -83,6 +107,7 @@
       </div>
       <div class="top-actions">
         <button id="undoBtn" class="btn secondary">↶ Undo</button>
+        <button id="wakeBtn" class="btn secondary">☀ Bildschirm an</button>
         <button id="newBtn" class="btn danger">Neues Spiel</button>
       </div>
     </header>
@@ -95,6 +120,15 @@
       </label>
       <button id="addBtn" class="btn">+ Spieler</button>
       <span id="status" class="hint"></span>
+      <span id="wakeStatus" class="wake-status"></span>
+    </section>
+
+    <section class="log-panel">
+      <div class="log-head">
+        <h2>Spielverlauf</h2>
+        <button id="clearLogBtn" class="btn secondary">Log löschen</button>
+      </div>
+      <div id="log" class="log"></div>
     </section>
   </main>
 
@@ -113,16 +147,18 @@
   </dialog>
 
   <script>
-    const STORAGE_KEY = "realm-counter-state-v1";
+    const STORAGE_KEY = "realm-counter-state-v2";
     const MAX_PLAYERS = 4;
     const MIN_PLAYERS = 2;
+
     const defaultState = () => ({
       startScore: 50,
       players: [
-        { id: crypto.randomUUID(), name: "Spieler 1", score: 50, turns: 0 },
-        { id: crypto.randomUUID(), name: "Spieler 2", score: 50, turns: 0 }
+        { id: crypto.randomUUID(), name: "Spieler 1", score: 50 },
+        { id: crypto.randomUUID(), name: "Spieler 2", score: 50 }
       ],
-      history: []
+      history: [],
+      log: []
     });
 
     let state;
@@ -131,17 +167,26 @@
     } catch {
       state = defaultState();
     }
+    state.history ||= [];
+    state.log ||= [];
 
     const playersEl = document.getElementById("players");
     const startScoreEl = document.getElementById("startScore");
     const addBtn = document.getElementById("addBtn");
     const undoBtn = document.getElementById("undoBtn");
+    const wakeBtn = document.getElementById("wakeBtn");
     const newBtn = document.getElementById("newBtn");
     const statusEl = document.getElementById("status");
+    const wakeStatusEl = document.getElementById("wakeStatus");
+    const logEl = document.getElementById("log");
+    const clearLogBtn = document.getElementById("clearLogBtn");
     const scoreDialog = document.getElementById("scoreDialog");
     const scoreInput = document.getElementById("scoreInput");
     const scoreForm = document.getElementById("scoreForm");
+
     let editingPlayerId = null;
+    let wakeLock = null;
+    let wakeRequested = false;
 
     function save() {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
@@ -150,9 +195,45 @@
     function snapshot() {
       state.history.push({
         players: state.players.map(p => ({...p})),
-        startScore: state.startScore
+        startScore: state.startScore,
+        log: state.log.map(x => ({...x}))
       });
       if (state.history.length > 100) state.history.shift();
+    }
+
+    function addLog(player, delta, from, to, type = "change") {
+      state.log.unshift({
+        id: crypto.randomUUID(),
+        time: Date.now(),
+        player: player.name,
+        delta,
+        from,
+        to,
+        type
+      });
+      if (state.log.length > 200) state.log.length = 200;
+    }
+
+    function formatTime(ts) {
+      return new Date(ts).toLocaleTimeString([], {hour:"2-digit", minute:"2-digit", second:"2-digit"});
+    }
+
+    function renderLog() {
+      if (!state.log.length) {
+        logEl.innerHTML = `<div class="hint">Noch keine Änderungen.</div>`;
+        return;
+      }
+      logEl.innerHTML = state.log.map(entry => {
+        const sign = entry.delta > 0 ? "+" : "";
+        const cls = entry.delta > 0 ? "plus" : entry.delta < 0 ? "minus" : "";
+        const label = entry.type === "set" ? `gesetzt: ${entry.from} → ${entry.to}` : `${entry.from} → ${entry.to}`;
+        return `
+          <div class="log-entry">
+            <span class="log-time">${formatTime(entry.time)}</span>
+            <span>${escapeHtml(entry.player)} · ${label}</span>
+            <span class="log-change ${cls}">${sign}${entry.delta}</span>
+          </div>`;
+      }).join("");
     }
 
     function render() {
@@ -168,13 +249,16 @@
             <button class="remove" title="Spieler entfernen" aria-label="Spieler entfernen" data-action="remove" data-id="${player.id}">×</button>
           </div>
           <div class="score-wrap">
+            <div id="delta-${player.id}" class="delta-float"></div>
             <button class="score ${player.score <= 0 ? "zero" : ""}" data-action="edit" data-id="${player.id}" aria-label="Punktestand bearbeiten">${player.score}</button>
           </div>
-          <div class="grid">
-            ${[-10,-5,-1,1,5,10].map(v => `
-              <button class="score-btn ${v > 0 ? "plus" : "minus"}" data-action="change" data-id="${player.id}" data-delta="${v}">
-                ${v > 0 ? "+" : ""}${v}
-              </button>`).join("")}
+          <div class="controls">
+            <button class="score-btn minus" data-action="change" data-id="${player.id}" data-delta="-1">−1</button>
+            <div class="custom-change">
+              <input class="custom-input" data-action="custom-input" data-id="${player.id}" type="number" inputmode="numeric" min="1" max="9999" placeholder="Punkte">
+              <button class="apply-btn" data-action="custom-apply" data-id="${player.id}">Anwenden</button>
+            </div>
+            <button class="score-btn plus" data-action="change" data-id="${player.id}" data-delta="1">+1</button>
           </div>
           <div class="meta">
             <span>${index + 1}. Spieler</span>
@@ -188,7 +272,9 @@
       addBtn.style.opacity = addBtn.disabled ? ".45" : "1";
       undoBtn.disabled = state.history.length === 0;
       undoBtn.style.opacity = undoBtn.disabled ? ".45" : "1";
-      statusEl.textContent = `${state.players.length}/${MAX_PLAYERS} Spieler · Änderungen werden automatisch gespeichert`;
+      statusEl.textContent = `${state.players.length}/${MAX_PLAYERS} Spieler · automatisch gespeichert`;
+      renderLog();
+      updateWakeUi();
       save();
     }
 
@@ -196,6 +282,28 @@
       return String(s).replace(/[&<>"']/g, m => ({
         "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"
       }[m]));
+    }
+
+    function flashDelta(id, delta) {
+      const el = document.getElementById(`delta-${id}`);
+      if (!el) return;
+      el.className = "delta-float";
+      void el.offsetWidth;
+      el.textContent = `${delta > 0 ? "+" : ""}${delta}`;
+      el.classList.add(delta >= 0 ? "plus" : "minus", "show");
+    }
+
+    function changeScore(player, delta) {
+      const from = player.score;
+      const to = Math.max(0, from + delta);
+      const actualDelta = to - from;
+      if (actualDelta === 0) return;
+
+      snapshot();
+      player.score = to;
+      addLog(player, actualDelta, from, to);
+      render();
+      requestAnimationFrame(() => flashDelta(player.id, actualDelta));
     }
 
     playersEl.addEventListener("click", e => {
@@ -206,9 +314,17 @@
       if (!player) return;
 
       if (btn.dataset.action === "change") {
-        snapshot();
-        player.score = Math.max(0, player.score + Number(btn.dataset.delta));
-        render();
+        changeScore(player, Number(btn.dataset.delta));
+      }
+
+      if (btn.dataset.action === "custom-apply") {
+        const input = playersEl.querySelector(`[data-action="custom-input"][data-id="${id}"]`);
+        const raw = input?.value?.trim();
+        if (!raw) return;
+        const amount = Number(raw);
+        if (!Number.isFinite(amount) || amount === 0) return;
+        changeScore(player, amount);
+        input.value = "";
       }
 
       if (btn.dataset.action === "remove") {
@@ -224,6 +340,17 @@
         scoreDialog.showModal();
         setTimeout(() => scoreInput.select(), 50);
       }
+    });
+
+    playersEl.addEventListener("keydown", e => {
+      if (e.key !== "Enter" || !e.target.matches('[data-action="custom-input"]')) return;
+      const id = e.target.dataset.id;
+      const player = state.players.find(p => p.id === id);
+      if (!player) return;
+      const amount = Number(e.target.value);
+      if (!Number.isFinite(amount) || amount === 0) return;
+      changeScore(player, amount);
+      e.target.value = "";
     });
 
     playersEl.addEventListener("input", e => {
@@ -242,8 +369,7 @@
       state.players.push({
         id: crypto.randomUUID(),
         name: `Spieler ${n}`,
-        score: state.startScore,
-        turns: 0
+        score: state.startScore
       });
       render();
     });
@@ -260,6 +386,7 @@
       if (!prev) return;
       state.players = prev.players;
       state.startScore = prev.startScore;
+      state.log = prev.log;
       render();
     });
 
@@ -270,20 +397,93 @@
       state.players = state.players.map((p, i) => ({
         ...p,
         name: p.name || `Spieler ${i+1}`,
-        score: state.startScore,
-        turns: 0
+        score: state.startScore
       }));
+      state.log.unshift({
+        id: crypto.randomUUID(),
+        time: Date.now(),
+        player: "Spiel",
+        delta: 0,
+        from: state.startScore,
+        to: state.startScore,
+        type: "new"
+      });
       render();
     });
 
-    scoreForm.addEventListener("submit", e => {
+    clearLogBtn.addEventListener("click", () => {
+      if (!state.log.length) return;
+      snapshot();
+      state.log = [];
+      render();
+    });
+
+    scoreForm.addEventListener("submit", () => {
       if (scoreDialog.returnValue === "cancel") return;
       const player = state.players.find(p => p.id === editingPlayerId);
       if (!player) return;
-      snapshot();
-      player.score = Math.max(0, Math.min(9999, Number(scoreInput.value) || 0));
+      const from = player.score;
+      const to = Math.max(0, Math.min(9999, Number(scoreInput.value) || 0));
+      if (from !== to) {
+        snapshot();
+        player.score = to;
+        addLog(player, to - from, from, to, "set");
+      }
       editingPlayerId = null;
       render();
+      requestAnimationFrame(() => flashDelta(player.id, to - from));
+    });
+
+    async function requestWakeLock() {
+      wakeRequested = true;
+      if (!("wakeLock" in navigator)) {
+        wakeStatusEl.textContent = "Wake Lock wird von diesem Browser nicht unterstützt.";
+        updateWakeUi();
+        return;
+      }
+      try {
+        wakeLock = await navigator.wakeLock.request("screen");
+        wakeStatusEl.textContent = "Bildschirm bleibt während des Spiels an.";
+        wakeLock.addEventListener("release", () => {
+          wakeLock = null;
+          updateWakeUi();
+        });
+      } catch (err) {
+        wakeStatusEl.textContent = "Bildschirm konnte nicht dauerhaft aktiv gehalten werden.";
+      }
+      updateWakeUi();
+    }
+
+    async function releaseWakeLock() {
+      wakeRequested = false;
+      if (wakeLock) {
+        try { await wakeLock.release(); } catch {}
+        wakeLock = null;
+      }
+      wakeStatusEl.textContent = "Bildschirm-Wachhaltung aus.";
+      updateWakeUi();
+    }
+
+    function updateWakeUi() {
+      if (!wakeBtn) return;
+      if (wakeLock) {
+        wakeBtn.textContent = "☀ Bildschirm bleibt an";
+      } else if (wakeRequested) {
+        wakeBtn.textContent = "☀ Bildschirm erneut aktivieren";
+      } else {
+        wakeBtn.textContent = "☀ Bildschirm an";
+      }
+    }
+
+    wakeBtn.addEventListener("click", () => {
+      if (wakeLock || wakeRequested) releaseWakeLock();
+      else requestWakeLock();
+    });
+
+    document.addEventListener("visibilitychange", () => {
+      if (document.visibilityState === "visible" && wakeRequested && !wakeLock) {
+        requestWakeLock();
+      }
     });
 
     if ("serviceWorker" in navigator) {
