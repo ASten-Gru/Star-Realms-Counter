@@ -6,7 +6,7 @@
   <meta name="theme-color" content="#06111f" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-  <title>Star Realm Counter v.0.29</title>
+  <title>Star Realm Counter v.0.31</title>
   <link rel="manifest" href="manifest.webmanifest" />
   <style>
     :root{
@@ -302,6 +302,74 @@
   white-space:nowrap;
 }
 
+
+/* v0.30 – FFA fills the available board; missing player slots become compact bottom buttons */
+.players.ffa-mode{
+  position:relative;
+  padding-bottom:0!important;
+}
+.players.ffa-mode.ffa-two{
+  grid-template-columns:repeat(2,minmax(0,1fr))!important;
+  grid-template-rows:minmax(0,1fr)!important;
+}
+.players.ffa-mode.ffa-three{
+  grid-template-columns:repeat(3,minmax(0,1fr))!important;
+  grid-template-rows:minmax(0,1fr)!important;
+}
+.ffa-add-dock{
+  position:absolute;
+  left:50%;
+  bottom:6px;
+  transform:translateX(-50%);
+  z-index:20;
+  display:flex;
+  gap:8px;
+  align-items:center;
+  justify-content:center;
+  pointer-events:none;
+}
+.ffa-add-btn{
+  pointer-events:auto;
+  min-width:84px;
+  height:34px;
+  padding:0 12px;
+  border-radius:18px;
+  border:1px solid #31566e;
+  background:rgba(3,12,20,.92);
+  color:#d7edf8;
+  font:inherit;
+  font-size:.82rem;
+  font-weight:700;
+  box-shadow:0 4px 14px rgba(0,0,0,.28);
+}
+.ffa-add-btn:active{transform:translateY(1px);}
+@media (max-width:700px){
+  .players.ffa-mode.ffa-two{grid-template-columns:repeat(2,minmax(0,1fr))!important;}
+  .players.ffa-mode.ffa-three{grid-template-columns:repeat(3,minmax(0,1fr))!important;}
+  .ffa-add-btn{
+    min-width:74px;
+    height:32px;
+    padding:0 10px;
+    font-size:.76rem;
+  }
+}
+
+
+/* v0.31 – point controls 50% larger */
+.controls .score-btn{
+  min-height:72px!important;
+  font-size:1.5em!important;
+}
+.controls .apply-btn{
+  min-width:72px!important;
+  min-height:66px!important;
+  font-size:1.5em!important;
+}
+.controls .custom-input{
+  min-height:66px!important;
+  font-size:1.35em!important;
+}
+
 </style>
 </head>
 <body>
@@ -309,7 +377,7 @@
   <header class="topbar">
     <div aria-hidden="true"></div>
     <div class="title-wrap">
-      <h1 class="title">Star Realm Counter v.0.29</h1>
+      <h1 class="title">Star Realm Counter v.0.31</h1>
       <div class="subtitle">Trade · Attack · Dominate</div>
     </div>
     <button id="settingsBtn" class="icon-btn" aria-label="Einstellungen">⚙</button>
@@ -363,7 +431,7 @@
 </dialog>
 
 <script>
-const STORAGE_KEY="realm-counter-state-v29";
+const STORAGE_KEY="realm-counter-state-v31";
 const OLD_STORAGE_KEYS=["realm-counter-state-v13","realm-counter-state-v12","realm-counter-state-v11","realm-counter-state-v10","realm-counter-state-v9","realm-counter-state-v8","realm-counter-state-v7","realm-counter-state-v6","realm-counter-state-v5","realm-counter-state-v4","realm-counter-state-v3","realm-counter-state-v2","realm-counter-state-v1"];
 const MAX_PLAYERS=4,MIN_PLAYERS=2;
 const FACTIONS=[
@@ -576,11 +644,30 @@ function render(){
     undoBtn.disabled=!state.history.length;
     continueSeriesBtn.hidden=!state.gameOver;endSeriesBtn.hidden=!state.gameOver;
     statusEl.textContent=state.gameOver?"Spiel beendet":"Team · 75 Authority";
-    save();return;
+  
+  if(state.mode==="ffa" && state.players.length<4 && !state.gameOver){
+    const dock=document.createElement("div");
+    dock.className="ffa-add-dock";
+    for(let n=state.players.length+1;n<=4;n++){
+      const btn=document.createElement("button");
+      btn.type="button";
+      btn.className="ffa-add-btn";
+      btn.dataset.action="add-slot";
+      btn.textContent=`+ Spieler ${n}`;
+      dock.appendChild(btn);
+    }
+    playersEl.appendChild(dock);
+  }
+  save();return;
   }
   startScoreEl.value=state.startScore;
   playersEl.innerHTML="";
   playersEl.className="players";
+  if(state.mode==="ffa"){
+    playersEl.classList.add("ffa-mode");
+    if(state.players.length===2)playersEl.classList.add("ffa-two");
+    else if(state.players.length===3)playersEl.classList.add("ffa-three");
+  }
   ffaBtn.classList.toggle("active",state.mode==="ffa");
   bossBtn.classList.toggle("active",state.mode==="boss");
   teamBtn.classList.toggle("active",false);
