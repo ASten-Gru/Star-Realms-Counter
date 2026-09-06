@@ -1,4 +1,4 @@
-# Star Realm Counter v0.31
+# Star Realm Counter v0.33
 
 Mobile, installierbare PWA zum Zählen von Authority/Punkten und Serienpunkten bei Star-Realms-artigen Kartenspielen.
 
@@ -210,10 +210,10 @@ Nach dem Ersetzen geänderter Dateien und dem Commit wird die neue Version über
 
 ## Version
 
-Aktueller Stand: **v0.31**
+Aktueller Stand: **v0.33**
 
 
-### Änderungen in v0.31
+### Änderungen in v0.33
 
 - Im Boss-Modus stehen Boss-/Team-Plakette und Handkarten-Anzeige direkt unter Fraktionssymbol und Serienpunkten.
 - Die Authority-Anzeigen sind in den Spielerfenstern vertikal zentriert.
@@ -221,7 +221,7 @@ Aktueller Stand: **v0.31**
 
 
 
-### Änderungen in v0.31
+### Änderungen in v0.33
 
 - Hintergrundmusik und Soundeffekte wurden vollständig entfernt.
 - Die Audio-Einstellungen im Zahnrad-Menü wurden entfernt.
@@ -229,18 +229,18 @@ Aktueller Stand: **v0.31**
 - Alle übrigen Funktionen und Layout-Änderungen bleiben erhalten.
 
 
-### Änderungen in v0.31
+### Änderungen in v0.33
 
 - Der kumulative 3-Sekunden-Änderungszähler ist jetzt auch im Team-Modus vorhanden.
 - Die Änderungszahl erscheint in allen Modi oberhalb der großen Authority-Zahl und startet nicht mehr direkt in der Punktzahl.
 
 
-### Änderungen in v0.31
+### Änderungen in v0.33
 
 - Der schwebende Änderungszähler im Team-Modus wurde weiter nach oben versetzt, damit er die große Authority-Zahl nicht mehr berührt.
 
 
-### Änderungen in v0.31
+### Änderungen in v0.33
 
 - Im FFA-Modus werden fehlende Spielerfelder nicht mehr als leere große Flächen reserviert.
 - Bei 2 Spielern füllen beide Spieler die verfügbare Fläche möglichst groß aus.
@@ -249,7 +249,25 @@ Aktueller Stand: **v0.31**
 - Bei 4 Spielern bleibt das vollständige FFA-Raster erhalten.
 
 
-### Änderungen in v0.31
+### Änderungen in v0.33
 
 - Die Bedienfelder für Punkteänderungen wurden in FFA-, Boss- und Team-Modus ungefähr 50 % größer gemacht.
 - Dies betrifft die −1/+1-Tasten, die −/+-Tasten für freie Werte und das Eingabefeld.
+
+
+### Änderungen in v0.33
+
+- Im FFA-Modus werden 2 Spieler jetzt übereinander statt nebeneinander dargestellt.
+- Auch bei 3 Spielern werden die Spielerfelder vertikal untereinander angeordnet.
+- Die kompakten Buttons für noch fehlende Spieler bleiben am unteren Rand.
+- Die vergrößerten Punkte-Bedienfelder aus v0.31 bleiben erhalten.
+
+
+### Änderungen in v0.33
+
+- Im Zahnrad-Menü gibt es jetzt einen Regler für die Größe der Punkte-Bedienelemente.
+- Der Regler hat 10 Stufen.
+- Stufe 1 entspricht der ursprünglichen Bedienfeldgröße vor v0.31.
+- Stufe 10 entspricht der 50 % größeren Variante aus v0.31/v0.32.
+- Standardwert ist Stufe 1.
+- Die gewählte Größe wird gespeichert und gilt für FFA, Boss und Team.

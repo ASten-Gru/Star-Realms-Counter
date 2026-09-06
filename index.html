@@ -6,7 +6,7 @@
   <meta name="theme-color" content="#06111f" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-  <title>Star Realm Counter v.0.31</title>
+  <title>Star Realm Counter v.0.33</title>
   <link rel="manifest" href="manifest.webmanifest" />
   <style>
     :root{
@@ -355,19 +355,46 @@
 }
 
 
-/* v0.31 – point controls 50% larger */
+/* v0.32 – FFA player cards stacked vertically */
+.players.ffa-mode.ffa-two{
+  grid-template-columns:minmax(0,1fr)!important;
+  grid-template-rows:repeat(2,minmax(0,1fr))!important;
+}
+.players.ffa-mode.ffa-three{
+  grid-template-columns:minmax(0,1fr)!important;
+  grid-template-rows:repeat(3,minmax(0,1fr))!important;
+}
+@media (max-width:700px){
+  .players.ffa-mode.ffa-two{
+    grid-template-columns:minmax(0,1fr)!important;
+    grid-template-rows:repeat(2,minmax(0,1fr))!important;
+  }
+  .players.ffa-mode.ffa-three{
+    grid-template-columns:minmax(0,1fr)!important;
+    grid-template-rows:repeat(3,minmax(0,1fr))!important;
+  }
+}
+
+
+/* v0.33 – adjustable point-control size, 10 levels */
+:root{--control-scale:1;}
 .controls .score-btn{
-  min-height:72px!important;
-  font-size:1.5em!important;
+  min-height:calc(48px * var(--control-scale))!important;
+  font-size:calc(1em * var(--control-scale))!important;
 }
 .controls .apply-btn{
-  min-width:72px!important;
-  min-height:66px!important;
-  font-size:1.5em!important;
+  min-width:calc(48px * var(--control-scale))!important;
+  min-height:calc(44px * var(--control-scale))!important;
+  font-size:calc(1em * var(--control-scale))!important;
 }
 .controls .custom-input{
-  min-height:66px!important;
-  font-size:1.35em!important;
+  min-height:calc(44px * var(--control-scale))!important;
+  font-size:calc(.9em * var(--control-scale))!important;
+}
+.control-size-value{
+  min-width:2.5em;
+  text-align:right;
+  font-variant-numeric:tabular-nums;
 }
 
 </style>
@@ -377,7 +404,7 @@
   <header class="topbar">
     <div aria-hidden="true"></div>
     <div class="title-wrap">
-      <h1 class="title">Star Realm Counter v.0.31</h1>
+      <h1 class="title">Star Realm Counter v.0.33</h1>
       <div class="subtitle">Trade · Attack · Dominate</div>
     </div>
     <button id="settingsBtn" class="icon-btn" aria-label="Einstellungen">⚙</button>
@@ -418,6 +445,11 @@
   <strong>Einstellungen</strong>
   <div class="settings-row"><label for="startScore">Startpunkte</label><input id="startScore" type="number" inputmode="numeric" min="1" max="999" value="50"></div>
   <div class="settings-row"><span>Spieler</span><button id="addBtn" class="small-btn">+ Spieler</button></div>
+  <div class="settings-row">
+    <label for="controlSize">Bedienfeldgröße</label>
+    <input id="controlSize" type="range" min="1" max="10" step="1" value="1" aria-label="Größe der Punkte-Bedienelemente">
+    <span id="controlSizeValue" class="control-size-value">1/10</span>
+  </div>
   <p id="wakeStatus" class="hint"></p>
   <div class="dialog-actions"><button id="closeSettingsBtn" class="small-btn">Schließen</button></div>
 </dialog>
@@ -431,7 +463,7 @@
 </dialog>
 
 <script>
-const STORAGE_KEY="realm-counter-state-v31";
+const STORAGE_KEY="realm-counter-state-v33";
 const OLD_STORAGE_KEYS=["realm-counter-state-v13","realm-counter-state-v12","realm-counter-state-v11","realm-counter-state-v10","realm-counter-state-v9","realm-counter-state-v8","realm-counter-state-v7","realm-counter-state-v6","realm-counter-state-v5","realm-counter-state-v4","realm-counter-state-v3","realm-counter-state-v2","realm-counter-state-v1"];
 const MAX_PLAYERS=4,MIN_PLAYERS=2;
 const FACTIONS=[
@@ -451,7 +483,8 @@ try{
   const saved=localStorage.getItem(STORAGE_KEY)||OLD_STORAGE_KEYS.map(k=>localStorage.getItem(k)).find(Boolean);
   state=saved?JSON.parse(saved):defaultState();
 }catch{state=defaultState()}
-state.history ||= []; state.log ||= []; state.gameOver ||= false; state.winnerIds ||= []; state.mode ||= "ffa"; state.bossIndex ??= 0;
+state.history ||= []; state.log ||= []; state.gameOver ||= false;
+state.controlSize=Number.isFinite(Number(state.controlSize))?Math.max(1,Math.min(10,Number(state.controlSize))):1; state.winnerIds ||= []; state.mode ||= "ffa"; state.bossIndex ??= 0;
 state.players=state.players.map((p,i)=>({...p,wins:p.wins||0,faction:p.faction||FACTIONS[i%FACTIONS.length].id}));
 normalizeFactions();
 
@@ -465,6 +498,18 @@ settingsDialog=document.getElementById("settingsDialog"),logDialog=document.getE
 continueSeriesBtn=document.getElementById("continueSeriesBtn"),endSeriesBtn=document.getElementById("endSeriesBtn"),factionMenu=document.getElementById("factionMenu");
 
 let editingPlayerId=null,wakeLock=null,wakeRequested=false;
+const controlSize=document.getElementById("controlSize");
+const controlSizeValue=document.getElementById("controlSizeValue");
+
+function applyControlSize(){
+  const level=Math.max(1,Math.min(10,Number(state.controlSize)||1));
+  state.controlSize=level;
+  // Level 1 = original size, level 10 = 150% (the v0.31 maximum).
+  const scale=1+((level-1)/9)*0.5;
+  document.documentElement.style.setProperty("--control-scale",scale.toFixed(4));
+  if(controlSize)controlSize.value=String(level);
+  if(controlSizeValue)controlSizeValue.textContent=`${level}/10`;
+}
 const deltaAccumulators=new Map();
 
 
@@ -927,6 +972,11 @@ document.getElementById("closeLogBtn").addEventListener("click",()=>logDialog.cl
 clearLogBtn.addEventListener("click",()=>{state.log=[];renderLog();save()});
 settingsBtn.addEventListener("click",()=>settingsDialog.showModal());
 document.getElementById("closeSettingsBtn").addEventListener("click",()=>settingsDialog.close());
+controlSize.addEventListener("input",()=>{
+  state.controlSize=Math.max(1,Math.min(10,Number(controlSize.value)||1));
+  applyControlSize();
+  save();
+});
 
 async function requestWakeLock(){
   wakeRequested=true;
@@ -944,6 +994,7 @@ wakeBtn.addEventListener("click",()=>{if(wakeLock||wakeRequested)releaseWakeLock
 document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible"&&wakeRequested&&!wakeLock)requestWakeLock()});
 
 if("serviceWorker" in navigator)window.addEventListener("load",()=>navigator.serviceWorker.register("./sw.js"));
+applyControlSize();
 render();
 </script>
 </body>
