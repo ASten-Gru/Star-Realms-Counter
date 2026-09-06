@@ -6,7 +6,7 @@
   <meta name="theme-color" content="#06111f" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-  <title>Star Realm Counter v.0.33</title>
+  <title>Star Realm Counter v.0.34</title>
   <link rel="manifest" href="manifest.webmanifest" />
   <style>
     :root{
@@ -376,20 +376,39 @@
 }
 
 
-/* v0.33 – adjustable point-control size, 10 levels */
+/* v0.34 – adjustable controls using the original pre-v0.31 dimensions */
 :root{--control-scale:1;}
+
+/* Original basis: 15px quick buttons, 17px +/- buttons, compact padding. */
 .controls .score-btn{
-  min-height:calc(48px * var(--control-scale))!important;
-  font-size:calc(1em * var(--control-scale))!important;
+  min-height:0!important;
+  padding:calc(6px * var(--control-scale)) calc(2px * var(--control-scale))!important;
+  font-size:calc(15px * var(--control-scale))!important;
+}
+.controls .custom-change{
+  grid-column:1/-1!important;
+  display:grid!important;
+  grid-template-columns:minmax(0,1fr) minmax(0,2fr) minmax(0,1fr)!important;
+  gap:4px!important;
+  width:100%!important;
+  min-width:0!important;
+  align-items:stretch!important;
 }
 .controls .apply-btn{
-  min-width:calc(48px * var(--control-scale))!important;
-  min-height:calc(44px * var(--control-scale))!important;
-  font-size:calc(1em * var(--control-scale))!important;
+  width:100%!important;
+  min-width:0!important;
+  min-height:0!important;
+  padding:calc(5px * var(--control-scale)) calc(2px * var(--control-scale))!important;
+  font-size:calc(17px * var(--control-scale))!important;
+  box-sizing:border-box!important;
 }
 .controls .custom-input{
-  min-height:calc(44px * var(--control-scale))!important;
-  font-size:calc(.9em * var(--control-scale))!important;
+  width:100%!important;
+  min-width:0!important;
+  min-height:0!important;
+  padding:calc(5px * var(--control-scale)) calc(2px * var(--control-scale))!important;
+  font-size:calc(16px * var(--control-scale))!important;
+  box-sizing:border-box!important;
 }
 .control-size-value{
   min-width:2.5em;
@@ -404,7 +423,7 @@
   <header class="topbar">
     <div aria-hidden="true"></div>
     <div class="title-wrap">
-      <h1 class="title">Star Realm Counter v.0.33</h1>
+      <h1 class="title">Star Realm Counter v.0.34</h1>
       <div class="subtitle">Trade · Attack · Dominate</div>
     </div>
     <button id="settingsBtn" class="icon-btn" aria-label="Einstellungen">⚙</button>
@@ -463,7 +482,7 @@
 </dialog>
 
 <script>
-const STORAGE_KEY="realm-counter-state-v33";
+const STORAGE_KEY="realm-counter-state-v34";
 const OLD_STORAGE_KEYS=["realm-counter-state-v13","realm-counter-state-v12","realm-counter-state-v11","realm-counter-state-v10","realm-counter-state-v9","realm-counter-state-v8","realm-counter-state-v7","realm-counter-state-v6","realm-counter-state-v5","realm-counter-state-v4","realm-counter-state-v3","realm-counter-state-v2","realm-counter-state-v1"];
 const MAX_PLAYERS=4,MIN_PLAYERS=2;
 const FACTIONS=[
