@@ -6,7 +6,7 @@
   <meta name="theme-color" content="#06111f" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-  <title>Star Realm Counter v.0.34</title>
+  <title>Star Realm Counter v.0.35</title>
   <link rel="manifest" href="manifest.webmanifest" />
   <style>
     :root{
@@ -416,6 +416,37 @@
   font-variant-numeric:tabular-nums;
 }
 
+
+/* v0.35 – compact manual boss override */
+.boss-select-wrap{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:6px;
+  padding:4px 8px;
+  border-bottom:1px solid #24485f;
+  background:rgba(2,8,14,.82);
+}
+.boss-select-wrap[hidden]{display:none!important;}
+.boss-select-wrap label{
+  font-size:.8rem;
+  font-weight:800;
+  color:#cfe8f5;
+}
+#bossSelect{
+  min-width:0;
+  max-width:220px;
+  height:32px;
+  padding:0 28px 0 9px;
+  border-radius:8px;
+  border:1px solid #31566e;
+  background:#07131d;
+  color:#e9f7ff;
+  font:inherit;
+  font-size:.82rem;
+  font-weight:700;
+}
+
 </style>
 </head>
 <body>
@@ -423,7 +454,7 @@
   <header class="topbar">
     <div aria-hidden="true"></div>
     <div class="title-wrap">
-      <h1 class="title">Star Realm Counter v.0.34</h1>
+      <h1 class="title">Star Realm Counter v.0.35</h1>
       <div class="subtitle">Trade · Attack · Dominate</div>
     </div>
     <button id="settingsBtn" class="icon-btn" aria-label="Einstellungen">⚙</button>
@@ -433,6 +464,10 @@
     <button id="ffaBtn" class="mode-btn">⚔ FFA</button>
     <button id="bossBtn" class="mode-btn">☠ Boss</button>
     <button id="teamBtn" class="mode-btn">⛓ Team</button>
+  </div>
+  <div id="bossSelectWrap" class="boss-select-wrap" hidden>
+    <label for="bossSelect">Boss:</label>
+    <select id="bossSelect" aria-label="Boss auswählen"></select>
   </div>
 
   <section id="players" class="players"></section>
@@ -482,7 +517,7 @@
 </dialog>
 
 <script>
-const STORAGE_KEY="realm-counter-state-v34";
+const STORAGE_KEY="realm-counter-state-v35";
 const OLD_STORAGE_KEYS=["realm-counter-state-v13","realm-counter-state-v12","realm-counter-state-v11","realm-counter-state-v10","realm-counter-state-v9","realm-counter-state-v8","realm-counter-state-v7","realm-counter-state-v6","realm-counter-state-v5","realm-counter-state-v4","realm-counter-state-v3","realm-counter-state-v2","realm-counter-state-v1"];
 const MAX_PLAYERS=4,MIN_PLAYERS=2;
 const FACTIONS=[
@@ -515,6 +550,7 @@ wakeStatusEl=document.getElementById("wakeStatus"),logEl=document.getElementById
 scoreDialog=document.getElementById("scoreDialog"),scoreInput=document.getElementById("scoreInput"),scoreForm=document.getElementById("scoreForm"),
 settingsDialog=document.getElementById("settingsDialog"),logDialog=document.getElementById("logDialog"),
 continueSeriesBtn=document.getElementById("continueSeriesBtn"),endSeriesBtn=document.getElementById("endSeriesBtn"),factionMenu=document.getElementById("factionMenu");
+const bossSelectWrap=document.getElementById("bossSelectWrap"),bossSelect=document.getElementById("bossSelect");
 
 let editingPlayerId=null,wakeLock=null,wakeRequested=false;
 const controlSize=document.getElementById("controlSize");
@@ -699,6 +735,17 @@ function renderTeam(){
   });
 }
 
+
+function updateBossSelector(){
+  const show=state.mode==="boss"&&state.players.length>0;
+  bossSelectWrap.hidden=!show;
+  if(!show)return;
+  state.bossIndex=((state.bossIndex%state.players.length)+state.players.length)%state.players.length;
+  bossSelect.innerHTML=state.players.map((p,i)=>
+    `<option value="${i}" ${i===state.bossIndex?"selected":""}>${esc(p.name)}</option>`
+  ).join("");
+}
+
 function render(){
   if(state.mode==="team"){
     renderTeam();
@@ -708,6 +755,7 @@ function render(){
     undoBtn.disabled=!state.history.length;
     continueSeriesBtn.hidden=!state.gameOver;endSeriesBtn.hidden=!state.gameOver;
     statusEl.textContent=state.gameOver?"Spiel beendet":"Team · 75 Authority";
+    updateBossSelector();
   
   if(state.mode==="ffa" && state.players.length<4 && !state.gameOver){
     const dock=document.createElement("div");
@@ -735,6 +783,7 @@ function render(){
   ffaBtn.classList.toggle("active",state.mode==="ffa");
   bossBtn.classList.toggle("active",state.mode==="boss");
   teamBtn.classList.toggle("active",false);
+  updateBossSelector();
 
   let renderPlayers=[...state.players];
   if(state.mode==="boss"&&state.players.length){
@@ -983,6 +1032,17 @@ startScoreEl.addEventListener("change",()=>{state.startScore=Math.max(1,Math.min
 ffaBtn.addEventListener("click",()=>setMode("ffa"));
 bossBtn.addEventListener("click",()=>setMode("boss"));
 teamBtn.addEventListener("click",()=>setMode("team"));
+
+bossSelect.addEventListener("change",()=>{
+  if(state.mode!=="boss"||!state.players.length)return;
+  const next=Number(bossSelect.value);
+  if(!Number.isInteger(next)||next<0||next>=state.players.length||next===state.bossIndex)return;
+  snapshot();
+  state.bossIndex=next;
+  save();
+  render();
+});
+
 continueSeriesBtn.addEventListener("click",startNextGame);
 endSeriesBtn.addEventListener("click",endSeries);
 

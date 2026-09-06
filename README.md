@@ -1,4 +1,4 @@
-# Star Realm Counter v0.34
+# Star Realm Counter v0.35
 
 Mobile, installierbare PWA zum Zählen von Authority/Punkten und Serienpunkten bei Star-Realms-artigen Kartenspielen.
 
@@ -210,10 +210,10 @@ Nach dem Ersetzen geänderter Dateien und dem Commit wird die neue Version über
 
 ## Version
 
-Aktueller Stand: **v0.34**
+Aktueller Stand: **v0.35**
 
 
-### Änderungen in v0.34
+### Änderungen in v0.35
 
 - Im Boss-Modus stehen Boss-/Team-Plakette und Handkarten-Anzeige direkt unter Fraktionssymbol und Serienpunkten.
 - Die Authority-Anzeigen sind in den Spielerfenstern vertikal zentriert.
@@ -221,7 +221,7 @@ Aktueller Stand: **v0.34**
 
 
 
-### Änderungen in v0.34
+### Änderungen in v0.35
 
 - Hintergrundmusik und Soundeffekte wurden vollständig entfernt.
 - Die Audio-Einstellungen im Zahnrad-Menü wurden entfernt.
@@ -229,18 +229,18 @@ Aktueller Stand: **v0.34**
 - Alle übrigen Funktionen und Layout-Änderungen bleiben erhalten.
 
 
-### Änderungen in v0.34
+### Änderungen in v0.35
 
 - Der kumulative 3-Sekunden-Änderungszähler ist jetzt auch im Team-Modus vorhanden.
 - Die Änderungszahl erscheint in allen Modi oberhalb der großen Authority-Zahl und startet nicht mehr direkt in der Punktzahl.
 
 
-### Änderungen in v0.34
+### Änderungen in v0.35
 
 - Der schwebende Änderungszähler im Team-Modus wurde weiter nach oben versetzt, damit er die große Authority-Zahl nicht mehr berührt.
 
 
-### Änderungen in v0.34
+### Änderungen in v0.35
 
 - Im FFA-Modus werden fehlende Spielerfelder nicht mehr als leere große Flächen reserviert.
 - Bei 2 Spielern füllen beide Spieler die verfügbare Fläche möglichst groß aus.
@@ -249,13 +249,13 @@ Aktueller Stand: **v0.34**
 - Bei 4 Spielern bleibt das vollständige FFA-Raster erhalten.
 
 
-### Änderungen in v0.34
+### Änderungen in v0.35
 
 - Die Bedienfelder für Punkteänderungen wurden in FFA-, Boss- und Team-Modus ungefähr 50 % größer gemacht.
 - Dies betrifft die −1/+1-Tasten, die −/+-Tasten für freie Werte und das Eingabefeld.
 
 
-### Änderungen in v0.34
+### Änderungen in v0.35
 
 - Im FFA-Modus werden 2 Spieler jetzt übereinander statt nebeneinander dargestellt.
 - Auch bei 3 Spielern werden die Spielerfelder vertikal untereinander angeordnet.
@@ -263,7 +263,7 @@ Aktueller Stand: **v0.34**
 - Die vergrößerten Punkte-Bedienfelder aus v0.31 bleiben erhalten.
 
 
-### Änderungen in v0.34
+### Änderungen in v0.35
 
 - Im Zahnrad-Menü gibt es jetzt einen Regler für die Größe der Punkte-Bedienelemente.
 - Der Regler hat 10 Stufen.
@@ -273,9 +273,17 @@ Aktueller Stand: **v0.34**
 - Die gewählte Größe wird gespeichert und gilt für FFA, Boss und Team.
 
 
-### Änderungen in v0.34
+### Änderungen in v0.35
 
 - Stufe 1 des Größenreglers basiert jetzt auf den tatsächlichen kompakten Bedienfeldmaßen aus den Versionen vor v0.31.
 - Stufe 10 skaliert diese ursprünglichen Maße weiterhin bis auf 150 %.
 - Die freie Punkteänderung ist fest auf 25 % Minus / 50 % Eingabefeld / 25 % Plus aufgeteilt.
 - Eingabefeld und Tasten verwenden `min-width: 0` und `box-sizing: border-box`, damit nichts mehr überlappt.
+
+
+### Änderungen in v0.35
+
+- Im Boss-Modus rotiert der Boss bei einer neuen Runde weiterhin automatisch.
+- Direkt unter der Modus-Auswahl gibt es jetzt zusätzlich eine kompakte Boss-Auswahl.
+- Damit kann der automatisch gewählte Boss für die aktuelle Runde manuell überschrieben werden.
+- Die Auswahl listet alle aktuellen Spieler auf und wird bei Namensänderungen neu aufgebaut.
